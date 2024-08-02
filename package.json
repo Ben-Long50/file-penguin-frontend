@@ -1,5 +1,5 @@
 {
-  "name": "react-dev-environment",
+  "name": "file-uploader",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -22,6 +22,7 @@
     "jwt-decode": "^4.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-perfect-scrollbar": "^1.5.8",
     "react-router-dom": "^6.23.1"
   },
   "devDependencies": {
