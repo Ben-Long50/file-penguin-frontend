@@ -13,7 +13,14 @@ export default {
         '2xl': '6rem',
       },
     },
-    extend: {},
+    extend: {
+      spacing: {
+        180: '180%',
+      },
+      borderRadius: {
+        '4xl': '1.625rem',
+      },
+    },
   },
   plugins: [],
 };

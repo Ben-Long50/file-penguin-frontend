@@ -7,7 +7,7 @@ import { ThemeContext } from './ThemeContext';
 
 const MainLayout = () => {
   const [loading, setLoading] = useState(true);
-  const [chats, setChats] = useState([]);
+  const [folders, setFolders] = useState([]);
   const [activeId, setActiveId] = useState('');
   const { apiUrl, currentUser } = useContext(AuthContext);
   const [visibility, setVisibility] = useState(true);
@@ -16,23 +16,21 @@ const MainLayout = () => {
   useEffect(() => {
     setLoading(true);
     const token = localStorage.getItem('token');
-    const fetchChats = async () => {
+    const fetchFolders = async () => {
       try {
-        const response = await fetch(
-          `${apiUrl}/users/${currentUser._id}/chats`,
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
-            },
+        const response = await fetch(`${apiUrl}/folders`, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
           },
-        );
+        });
         const data = await response.json();
         if (response.ok) {
-          setChats(data);
+          console.log(data);
+          setFolders(data);
           if (!localStorage.getItem('activeId')) {
-            localStorage.setItem('activeId', data[0]._id);
-            setActiveId(data[0]._id);
+            localStorage.setItem('activeId', data[0].id);
+            setActiveId(data[0].id);
           } else {
             setActiveId(localStorage.getItem('activeId'));
           }
@@ -43,8 +41,8 @@ const MainLayout = () => {
         setLoading(false);
       }
     };
-    fetchChats();
-  }, [currentUser._id]);
+    fetchFolders();
+  }, [currentUser]);
 
   const handleVisibility = () => {
     setVisibility((prevVisibility) => !prevVisibility);
@@ -57,8 +55,8 @@ const MainLayout = () => {
   return (
     <div className={`${theme} layout-cols bg-secondary grid grid-rows-1`}>
       <Sidebar
-        chats={chats}
-        setChats={setChats}
+        folders={folders}
+        setFolders={setFolders}
         activeId={activeId}
         setActiveId={setActiveId}
         visibility={visibility}
@@ -67,7 +65,7 @@ const MainLayout = () => {
         theme={theme}
         changeTheme={changeTheme}
       />
-      <Outlet context={[activeId, setActiveId, visibility, chats]} />
+      <Outlet context={[activeId, setActiveId, visibility, folders]} />
     </div>
   );
 };

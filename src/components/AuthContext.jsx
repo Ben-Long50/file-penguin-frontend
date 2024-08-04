@@ -40,22 +40,12 @@ const AuthProvider = ({ children }) => {
 
   const authTimer = 1000 * 60 * 60 * 4;
 
-  const signin = () => {
+  const signin = (user) => {
     localStorage.removeItem('activeId');
-    const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        const userToken = jwtDecode(token);
-        const user = userToken.user;
-        setCurrentUser(user);
-        setIsAuthenticated(true);
-
-        const expirationTime = Date.now() + authTimer;
-        localStorage.setItem('tokenExpirationTime', expirationTime);
-      } catch (error) {
-        console.error('Invalid token during signin:', error);
-      }
-    }
+    setCurrentUser(user);
+    setIsAuthenticated(true);
+    const expirationTime = Date.now() + authTimer;
+    localStorage.setItem('tokenExpirationTime', expirationTime);
   };
 
   const signout = () => {

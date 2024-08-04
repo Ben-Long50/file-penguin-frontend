@@ -1,11 +1,11 @@
 import List from './List';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import Icon from '@mdi/react';
 import {
   mdiChevronLeft,
-  mdiFolder,
   mdiFolderOpenOutline,
   mdiFolderOutline,
+  mdiPlus,
   mdiTrashCanOutline,
   mdiWeatherNight,
   mdiWeatherSunny,
@@ -14,13 +14,20 @@ import { AuthContext } from './AuthContext';
 import 'react-perfect-scrollbar/dist/css/styles.css';
 import PerfectScrollbar from 'react-perfect-scrollbar';
 import PenguinIcon from './PenguinIcon';
+import Button from './Button';
+import Folder from './Folder';
+import Loading from './Loading';
 
 const Sidebar = (props) => {
+  const [createMode, setCreateMode] = useState(false);
+  const [input, setInput] = useState('');
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
   });
-  const { signout, currentUser } = useContext(AuthContext);
+  const { apiUrl, signout, currentUser } = useContext(AuthContext);
+
+  const folderInputRef = useRef(null);
 
   useEffect(() => {
     const handleResize = () => {
@@ -29,15 +36,43 @@ const Sidebar = (props) => {
         height: window.innerHeight,
       });
     };
-
     window.addEventListener('resize', handleResize);
-
     handleResize();
-
     return () => {
       window.removeEventListener('resize', handleResize);
     };
   }, []);
+
+  const createFolder = async () => {
+    const token = localStorage.getItem('token');
+    try {
+      const response = await fetch(`${apiUrl}/folders`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ title: input }),
+      });
+      const data = await response.json();
+      console.log(data);
+      if (response.ok) {
+        props.setFolders((prevFolders) => [...prevFolders, data]);
+        setInput('');
+        folderInputRef.current.value = '';
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleInput = (e) => {
+    setInput(e.target.value);
+  };
+
+  const toggleCreateMode = () => {
+    setCreateMode((prevCreateMode) => !prevCreateMode);
+  };
 
   const hideSidebar = () => {
     if (windowSize.width < 1024) {
@@ -79,19 +114,71 @@ const Sidebar = (props) => {
         </div>
         <ul>
           <hr className="text-tertiary my-2 border-t" />
+          <Button
+            className="my-3 flex items-center gap-2"
+            onClick={toggleCreateMode}
+          >
+            <Icon path={mdiPlus} size={1.2} />
+            <h2 className="pr-1 text-lg font-semibold">Add Folder</h2>
+          </Button>
+          {createMode && (
+            <form className="flex flex-col gap-4 p-2">
+              <input
+                ref={folderInputRef}
+                className="bg-primary-2 text-primary focus w-full rounded p-1 text-lg"
+                placeholder="New folder name"
+                onChange={handleInput}
+              ></input>
+              <div className="flex items-center justify-between">
+                <Button
+                  type="submit"
+                  onClick={() => {
+                    toggleCreateMode();
+                    createFolder();
+                  }}
+                >
+                  Create
+                </Button>
+                <Button onClick={toggleCreateMode}>Cancel</Button>
+              </div>
+            </form>
+          )}
           <li>
             <button
-              className="list-secondary hover-primary flex items-center gap-4 p-3"
-              onClick={handleId}
+              className="list-primary hover-primary flex items-center gap-4"
+              onClick={() => handleId(1)}
             >
-              <Icon path={mdiFolderOutline} size={1.2} />
+              <Icon
+                path={
+                  props.activeId === 1 ? mdiFolderOpenOutline : mdiFolderOutline
+                }
+                size={1.2}
+              />
               <p>All Files</p>
             </button>
           </li>
+          {props.folders.map((folder) => {
+            if (
+              folder.title !== 'All files' &&
+              folder.title !== 'Trash' &&
+              !folder.parentFolderId
+            ) {
+              return (
+                <Folder
+                  key={folder.id}
+                  folders={props.folders}
+                  setFolders={props.setFolders}
+                  folder={folder}
+                  activeId={props.activeId}
+                  handleId={handleId}
+                />
+              );
+            }
+          })}
           <li>
             <button
-              className="list-secondary hover-primary flex items-center gap-4 p-3"
-              onClick={handleId}
+              className="list-primary hover-primary flex items-center gap-4"
+              onClick={() => handleId(0)}
             >
               <Icon path={mdiTrashCanOutline} size={1.2} />
               <p>Trash</p>
@@ -123,6 +210,7 @@ const Sidebar = (props) => {
             </List>
           </li>
         </ul>
+        <p>{currentUser.username}</p>
       </PerfectScrollbar>
     </div>
   );

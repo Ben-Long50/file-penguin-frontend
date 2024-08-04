@@ -17,7 +17,7 @@ const SigninForm = () => {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      navigate('/chats/global');
+      navigate('/home/all');
     }
   }, []);
 
@@ -42,8 +42,8 @@ const SigninForm = () => {
       const result = await response.json();
       if (response.ok) {
         localStorage.setItem('token', result.token);
-        signin();
-        navigate('/chats/global');
+        signin(result.user);
+        navigate('/home/all');
       } else {
         const errorArray = result.map((error) => {
           return error.msg;
