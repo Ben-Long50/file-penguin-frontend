@@ -122,7 +122,7 @@ const Sidebar = (props) => {
             <h2 className="pr-1 text-lg font-semibold">Add Folder</h2>
           </Button>
           {createMode && (
-            <form className="flex flex-col gap-4 p-2">
+            <form className="flex flex-col gap-4 py-2">
               <input
                 ref={folderInputRef}
                 className="bg-primary-2 text-primary focus w-full rounded p-1 text-lg"

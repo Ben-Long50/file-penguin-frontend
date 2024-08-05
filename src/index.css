@@ -49,3 +49,19 @@
     grid-template-columns: minmax(300px, 28rem) auto;
   }
 }
+
+@keyframes error-fade {
+  0% {
+    color: red;
+  }
+  30% {
+    color: red;
+  }
+  100% {
+    color: transparent;
+  }
+}
+
+.error-fade {
+  animation: error-fade 6s forwards;
+}

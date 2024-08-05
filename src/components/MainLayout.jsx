@@ -26,7 +26,6 @@ const MainLayout = () => {
         });
         const data = await response.json();
         if (response.ok) {
-          console.log(data);
           setFolders(data);
           if (!localStorage.getItem('activeId')) {
             localStorage.setItem('activeId', data[0].id);

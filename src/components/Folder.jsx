@@ -12,17 +12,55 @@ import { AuthContext } from './AuthContext';
 import { useContext, useEffect, useState } from 'react';
 
 const Folder = (props) => {
-  const [folderStatuses, setFolderStatuses] = useState([]);
+  const [openStatus, setOpenStatus] = useState(() => {
+    if (localStorage.getItem(`folder-${props.folder.id}`)) {
+      return JSON.parse(localStorage.getItem(`folder-${props.folder.id}`));
+    } else {
+      return false;
+    }
+  });
+  const [errors, setErrors] = useState([]);
+  const [editMode, setEditMode] = useState(false);
+  const [folderName, setFolderName] = useState(props.folder.title);
   const { apiUrl } = useContext(AuthContext);
 
-  useEffect(() => {
-    const parentFolders = props.folders.filter(
-      (folder) => folder.childFolders.length > 0,
-    );
-    setFolderStatuses(
-      parentFolders.map((folder) => ({ id: folder.id, open: false })),
-    );
-  }, [props.folders]);
+  const changeFolderName = async (e, folderId, folderTitle) => {
+    e.preventDefault();
+    const token = localStorage.getItem('token');
+    try {
+      const response = await fetch(`${apiUrl}/folders/${folderId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          folderId: Number(folderId),
+          folderTitle: folderTitle,
+        }),
+      });
+      const data = await response.json();
+      console.log(data);
+      if (response.ok) {
+        props.setFolders((prevFolders) =>
+          prevFolders.map((folder) =>
+            folder.id === folderId ? { ...folder, title: folderTitle } : folder,
+          ),
+        );
+      } else {
+        const errorArray = data.map((error) => {
+          return error.msg;
+        });
+        setErrors(errorArray);
+        setTimeout(() => {
+          setErrors([]);
+        }, 5000);
+      }
+      toggleEditMode();
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const deleteFolder = async (folderId) => {
     const token = localStorage.getItem('token');
@@ -88,74 +126,113 @@ const Folder = (props) => {
     e.preventDefault();
   };
 
-  const toggleOpen = (folderId) => {
-    setFolderStatuses((prevStatuses) => {
-      return prevStatuses.map((folder) =>
-        folder.id === folderId ? { ...folder, open: !folder.open } : folder,
-      );
-    });
+  const toggleOpen = () => {
+    setOpenStatus((prevOpen) => !prevOpen);
+    localStorage.setItem(
+      `folder-${props.folder.id}`,
+      JSON.stringify(!openStatus),
+    );
+  };
+
+  const toggleEditMode = () => {
+    setEditMode(!editMode);
   };
 
   return (
     <details
       className="group/detail [&_summary::-webkit-details-marker]:hidden"
-      open={folderStatuses.find((item) => item.id === props.folder.id)?.open}
+      open={openStatus}
+      onClick={(e) => e.preventDefault()}
     >
       <summary
-        className="list-primary hover-primary group/folder flex items-center justify-between gap-4"
+        className="list-primary hover-primary group/folder"
         onClick={(e) => {
           e.preventDefault();
+          e.stopPropagation();
           props.handleId(props.folder.id);
-          toggleOpen(props.folder.id);
+          toggleOpen();
         }}
         onDragStart={(e) => onDragStart(e, props.folder.id)}
         onDrop={(e) => onDrop(e, props.folder.id)}
         onDragOver={allowDrop}
         draggable
       >
-        <div className="flex items-center gap-4">
-          <Icon
-            path={
-              props.activeId === props.folder.id
-                ? mdiFolderOpenOutline
-                : mdiFolderOutline
-            }
-            size={1.2}
-          />
-          <p>{props.folder.title}</p>
-        </div>
-        <div className="flex items-center gap-4">
-          <ActionBtn
-            className="group-hover/folder:text-primary"
-            icon={mdiNoteEditOutline}
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
-          >
-            <Label className="-translate-x-full" label="Edit folder name" />
-          </ActionBtn>
-          <ActionBtn
-            className="group-hover/folder:text-primary"
-            icon={mdiTrashCanOutline}
-            onClick={(e) => {
-              e.stopPropagation();
-              deleteFolder(props.folder.id);
-            }}
-          >
-            <Label className="-translate-x-full" label="Move to trash" />
-          </ActionBtn>
-          {props.folder.childFolders.length > 0 && (
-            <span
-              className={`shrink-0 transition duration-300 ${folderStatuses.find((item) => item.id === props.folder.id)?.open && '-rotate-180'}`}
+        <div
+          className="flex items-center justify-between gap-4"
+          onClick={() => {}}
+        >
+          <div className="flex items-center gap-4">
+            <Icon
+              className="shrink-0"
+              path={
+                props.activeId === props.folder.id
+                  ? mdiFolderOpenOutline
+                  : mdiFolderOutline
+              }
+              size={1.2}
+            />
+            {!editMode ? (
+              <p>{props.folder.title}</p>
+            ) : (
+              <form
+                action="post"
+                onSubmit={(e) => {
+                  changeFolderName(e, props.folder.id, folderName);
+                }}
+              >
+                <input
+                  className="bg-primary-2 text-primary focus -my-1 box-border w-full rounded p-1"
+                  name="title"
+                  type="text"
+                  placeholder="Folder name"
+                  value={folderName}
+                  onChange={(e) => {
+                    setFolderName(e.target.value);
+                  }}
+                />
+              </form>
+            )}
+          </div>
+
+          <div className="flex items-center gap-4">
+            <ActionBtn
+              className="group-hover/folder:text-primary"
+              icon={mdiNoteEditOutline}
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleEditMode();
+              }}
             >
-              <Icon
-                path={mdiChevronDown}
-                size={1.1}
-                className={`text-secondary`}
-              ></Icon>
-            </span>
-          )}
+              <Label className="-translate-x-full" label="Edit folder name" />
+            </ActionBtn>
+            <ActionBtn
+              className="group-hover/folder:text-primary"
+              icon={mdiTrashCanOutline}
+              onClick={(e) => {
+                e.stopPropagation();
+                deleteFolder(props.folder.id);
+              }}
+            >
+              <Label className="-translate-x-full" label="Move to trash" />
+            </ActionBtn>
+            {props.folder.childFolders.length > 0 && (
+              <span
+                className={`shrink-0 transition duration-300 ${openStatus && '-rotate-180'}`}
+              >
+                <Icon
+                  path={mdiChevronDown}
+                  size={1.1}
+                  className={`text-secondary`}
+                ></Icon>
+              </span>
+            )}
+          </div>
         </div>
+        {errors.length > 0 && (
+          <p className="error-fade pointer-events-none translate-y-1 text-nowrap rounded border-transparent p-1 text-sm">
+            {`${errors[0]}`}
+          </p>
+        )}
       </summary>
       {props.folder.childFolders.length > 0 && (
         <ul className="flex flex-col space-y-1 pl-6">
