@@ -16,7 +16,6 @@ import PerfectScrollbar from 'react-perfect-scrollbar';
 import PenguinIcon from './PenguinIcon';
 import Button from './Button';
 import Folder from './Folder';
-import Loading from './Loading';
 
 const Sidebar = (props) => {
   const [createMode, setCreateMode] = useState(false);
@@ -27,17 +26,24 @@ const Sidebar = (props) => {
   });
   const { apiUrl, signout, currentUser } = useContext(AuthContext);
 
-  const folderInputRef = useRef(null);
+  const handleResize = () => {
+    const newSize = {
+      width: window.innerWidth,
+      height: window.innerHeight,
+    };
+    setWindowSize(newSize);
+    hideSidebar(newSize);
+  };
+
+  const hideSidebar = (size) => {
+    if (size.width < 1024) {
+      props.setVisibility(false);
+    }
+  };
 
   useEffect(() => {
-    const handleResize = () => {
-      setWindowSize({
-        width: window.innerWidth,
-        height: window.innerHeight,
-      });
-    };
     window.addEventListener('resize', handleResize);
-    handleResize();
+
     return () => {
       window.removeEventListener('resize', handleResize);
     };
@@ -55,11 +61,9 @@ const Sidebar = (props) => {
         body: JSON.stringify({ title: input }),
       });
       const data = await response.json();
-      console.log(data);
       if (response.ok) {
         props.setFolders((prevFolders) => [...prevFolders, data]);
         setInput('');
-        folderInputRef.current.value = '';
       }
     } catch (error) {
       console.error(error);
@@ -74,12 +78,6 @@ const Sidebar = (props) => {
     setCreateMode((prevCreateMode) => !prevCreateMode);
   };
 
-  const hideSidebar = () => {
-    if (windowSize.width < 1024) {
-      props.setVisibility(false);
-    }
-  };
-
   const handleId = (id) => {
     props.setActiveId(id);
     localStorage.setItem('activeId', id);
@@ -87,10 +85,10 @@ const Sidebar = (props) => {
 
   return (
     <div
-      className={`bg-primary z-10 col-end-2 row-start-1 flex h-dvh min-w-0 flex-col justify-between transition duration-300 max-sm:col-start-1 max-sm:col-end-3 ${!props.visibility && '-translate-x-full'} sticky top-0`}
+      className={`bg-primary z-10 col-end-2 row-start-1 row-end-2 flex h-dvh min-w-0 flex-col justify-between transition duration-300 max-sm:col-start-1 max-sm:col-end-3 ${!props.visibility && '-translate-x-full'} sticky top-0`}
     >
       <button
-        className={`accent-primary absolute right-4 top-4 z-20 grid shrink-0 place-content-center rounded-full hover:scale-110 ${!props.visibility && 'translate-x-180'}`}
+        className={`shadow-custom accent-primary absolute right-4 top-4 z-20 grid shrink-0 place-content-center rounded-full hover:scale-110 ${!props.visibility && 'translate-x-180'}`}
         onClick={props.handleVisibility}
       >
         <Icon
@@ -115,7 +113,7 @@ const Sidebar = (props) => {
         <ul>
           <hr className="text-tertiary my-2 border-t" />
           <Button
-            className="my-3 flex items-center gap-2"
+            className="my-3 flex items-center gap-2 p-2"
             onClick={toggleCreateMode}
           >
             <Icon path={mdiPlus} size={1.2} />
@@ -124,13 +122,13 @@ const Sidebar = (props) => {
           {createMode && (
             <form className="flex flex-col gap-4 py-2">
               <input
-                ref={folderInputRef}
                 className="bg-primary-2 text-primary focus w-full rounded p-1 text-lg"
                 placeholder="New folder name"
                 onChange={handleInput}
               ></input>
               <div className="flex items-center justify-between">
                 <Button
+                  className="p-1"
                   type="submit"
                   onClick={() => {
                     toggleCreateMode();
@@ -139,14 +137,16 @@ const Sidebar = (props) => {
                 >
                   Create
                 </Button>
-                <Button onClick={toggleCreateMode}>Cancel</Button>
+                <Button className="p-1" onClick={toggleCreateMode}>
+                  Cancel
+                </Button>
               </div>
             </form>
           )}
           <li>
             <button
               className="list-primary hover-primary flex items-center gap-4"
-              onClick={() => handleId(1)}
+              onClick={() => handleId(props.allId)}
             >
               <Icon
                 path={
@@ -178,7 +178,7 @@ const Sidebar = (props) => {
           <li>
             <button
               className="list-primary hover-primary flex items-center gap-4"
-              onClick={() => handleId(0)}
+              onClick={() => handleId(props.trashId)}
             >
               <Icon path={mdiTrashCanOutline} size={1.2} />
               <p>Trash</p>
@@ -210,7 +210,6 @@ const Sidebar = (props) => {
             </List>
           </li>
         </ul>
-        <p>{currentUser.username}</p>
       </PerfectScrollbar>
     </div>
   );

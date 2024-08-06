@@ -1,7 +1,7 @@
 const Button = (props) => {
   return (
     <button
-      className={`${props.className} accent-primary rounded p-2 text-gray-900`}
+      className={`${props.className} accent-primary shadow-custom rounded text-gray-900`}
       type={props.type}
       onClick={props.onClick}
     >

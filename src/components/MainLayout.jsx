@@ -8,6 +8,8 @@ import { ThemeContext } from './ThemeContext';
 const MainLayout = () => {
   const [loading, setLoading] = useState(true);
   const [folders, setFolders] = useState([]);
+  const [allId, setAllId] = useState('');
+  const [trashId, setTrashId] = useState('');
   const [activeId, setActiveId] = useState('');
   const { apiUrl, currentUser } = useContext(AuthContext);
   const [visibility, setVisibility] = useState(true);
@@ -27,6 +29,10 @@ const MainLayout = () => {
         const data = await response.json();
         if (response.ok) {
           setFolders(data);
+          const allFolder = data.find((folder) => folder.title === 'All files');
+          const trashFolder = data.find((folder) => folder.title === 'Trash');
+          setAllId(allFolder.id);
+          setTrashId(trashFolder.id);
           if (!localStorage.getItem('activeId')) {
             localStorage.setItem('activeId', data[0].id);
             setActiveId(data[0].id);
@@ -57,6 +63,8 @@ const MainLayout = () => {
         folders={folders}
         setFolders={setFolders}
         activeId={activeId}
+        allId={allId}
+        trashId={trashId}
         setActiveId={setActiveId}
         visibility={visibility}
         setVisibility={setVisibility}
@@ -64,7 +72,7 @@ const MainLayout = () => {
         theme={theme}
         changeTheme={changeTheme}
       />
-      <Outlet context={[activeId, setActiveId, visibility, folders]} />
+      <Outlet context={{ activeId, setActiveId, visibility, folders }} />
     </div>
   );
 };

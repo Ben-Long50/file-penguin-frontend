@@ -103,18 +103,30 @@ const Folder = (props) => {
           body: JSON.stringify({ folderId, childId }),
         });
         const data = await response.json();
+
         if (response.ok) {
+          console.log(data);
           props.setFolders((prevFolders) =>
             prevFolders.map((folder) => {
               if (folder.id === folderId) {
                 return data.parentFolder;
               } else if (folder.id === childId) {
                 return data.childFolder;
+              } else if (folder.id === data.oldParentFolder?.id) {
+                return data.oldParentFolder;
               } else {
                 return folder;
               }
             }),
           );
+        } else {
+          const errorArray = data.map((error) => {
+            return error.msg;
+          });
+          setErrors(errorArray);
+          setTimeout(() => {
+            setErrors([]);
+          }, 5000);
         }
       } catch (error) {
         console.error(error);
@@ -157,10 +169,7 @@ const Folder = (props) => {
         onDragOver={allowDrop}
         draggable
       >
-        <div
-          className="flex items-center justify-between gap-4"
-          onClick={() => {}}
-        >
+        <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <Icon
               className="shrink-0"
