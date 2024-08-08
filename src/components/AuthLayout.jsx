@@ -12,9 +12,11 @@ const AuthLayout = () => {
     <div
       className={`${theme} auth-layout-rows bg-primary grid min-h-dvh justify-center`}
     >
-      <div className="mb-32 flex items-center gap-8 self-end">
+      <div className="mb-16 flex flex-col items-center gap-8 self-end md:mb-32 md:flex-row">
         <PenguinIcon className="size-24" />
-        <h1 className="text-primary text-6xl font-semibold">File Penguin</h1>
+        <h1 className="text-primary text-5xl font-semibold md:text-6xl">
+          File Penguin
+        </h1>
       </div>
       <div className="z-10 flex min-w-80 flex-col items-center justify-center self-start">
         <button
