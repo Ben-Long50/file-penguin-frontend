@@ -5,6 +5,7 @@ import {
   mdiClose,
   mdiArrowUpLeft,
   mdiTrashCanOutline,
+  mdiUpload,
 } from '@mdi/js';
 import Icon from '@mdi/react';
 import Button from './Button';
@@ -77,7 +78,7 @@ const Explorer = () => {
       const token = localStorage.getItem('token');
       try {
         const response =
-          activeId === allId
+          Number(activeId) === allId
             ? await fetch(`${apiUrl}/files`, {
                 headers: {
                   'Content-Type': 'application/json',
@@ -93,7 +94,7 @@ const Explorer = () => {
 
         const data = await response.json();
         if (response.ok) {
-          if (activeId === allId) {
+          if (Number(activeId) === allId) {
             setSubfolders([]);
             setFilteredSubfolders([]);
             setFiles(data);
@@ -236,9 +237,9 @@ const Explorer = () => {
         ref={containerRef}
         className="mx-auto flex max-w-6xl flex-col gap-2 p-4 lg:p-8 2xl:p-12"
       >
-        <div className="flex items-center justify-center gap-4 px-16 sm:gap-6">
+        <div className="flex items-center justify-center gap-4 sm:gap-6">
           <Icon
-            className="text-primary"
+            className="text-primary shrink-0"
             path={mdiFolderOpenOutline}
             size={'clamp(3rem, 7vw, 6rem)'}
           />
@@ -259,7 +260,7 @@ const Explorer = () => {
             className="my-3 flex shrink-0 items-center gap-2 p-1 sm:p-2"
             onClick={handleButtonClick}
           >
-            <Icon path={mdiPlus} size={1.2} />
+            <Icon path={mdiUpload} size={1.2} />
             {containerWidth > 640 && (
               <h2 className="pr-1 text-lg font-semibold">Upload files</h2>
             )}
@@ -353,7 +354,7 @@ const Explorer = () => {
             </div>
           </div>
         )}
-        {activeId !== allId &&
+        {Number(activeId) !== allId &&
           (filteredSubfolders.length > 0 ? (
             <h3 className="text-secondary text-lg font-semibold">Subfolders</h3>
           ) : (
@@ -374,10 +375,11 @@ const Explorer = () => {
               onDragStart={onDragStart}
               moveIntoFolder={moveIntoFolder}
               moveFileIntoFolder={moveFileIntoFolder}
+              trashId={trashId}
             />
           );
         })}
-        {activeId !== allId &&
+        {Number(activeId) !== allId &&
           (filteredFiles.length > 0 ? (
             <h3 className="text-secondary mt-4 text-lg font-semibold">Files</h3>
           ) : (
@@ -393,6 +395,8 @@ const Explorer = () => {
               setFiles={setFiles}
               setFilteredFiles={setFilteredFiles}
               onDragStart={onDragStart}
+              moveFileIntoFolder={moveFileIntoFolder}
+              trashId={trashId}
             />
           );
         })}

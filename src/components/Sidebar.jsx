@@ -68,7 +68,12 @@ const Sidebar = (props) => {
       });
       const data = await response.json();
       if (response.ok) {
-        props.setFolders((prevFolders) => [...prevFolders, data]);
+        props.setFolders((prevFolders) => {
+          const updatedFolders = prevFolders.map((folder) =>
+            folder.id === data.parentFolder.id ? data.parentFolder : folder,
+          );
+          return [...updatedFolders, data.folder];
+        });
         setInput('');
       }
     } catch (error) {
@@ -87,6 +92,15 @@ const Sidebar = (props) => {
   const handleId = (id) => {
     props.setActiveId(id);
     localStorage.setItem('activeId', id);
+  };
+
+  const handleDrop = async (e, folderId) => {
+    const dataTransferType = e.dataTransfer.getData('type');
+    if (dataTransferType === 'file') {
+      await props.moveFileIntoFolder(e, folderId);
+    } else if (dataTransferType === 'folder') {
+      await props.moveIntoFolder(e, folderId);
+    }
   };
 
   return (
@@ -190,7 +204,7 @@ const Sidebar = (props) => {
             <button
               className="list-primary hover-primary flex items-center gap-4"
               onClick={() => handleId(props.trashId)}
-              onDrop={(e) => props.moveIntoFolder(e, props.trashId)}
+              onDrop={(e) => handleDrop(e, props.trashId)}
               onDragOver={props.allowDrop}
             >
               <Icon path={mdiTrashCanOutline} size={1.2} />

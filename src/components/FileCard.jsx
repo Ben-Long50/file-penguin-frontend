@@ -10,38 +10,29 @@ const FileCard = (props) => {
   const [errors, setErrors] = useState([]);
   const { apiUrl } = useContext(AuthContext);
 
-  const changeFolderName = async (e, folderId, folderTitle) => {
+  const changeFileName = async (e, fileId, fileTitle) => {
     e.preventDefault();
     const token = localStorage.getItem('token');
     try {
-      const response = await fetch(`${apiUrl}/folders/${folderId}`, {
+      const response = await fetch(`${apiUrl}/files/${fileId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          folderId: Number(folderId),
-          folderTitle: folderTitle,
+          fileId: Number(fileId),
+          fileTitle: fileTitle,
         }),
       });
       const data = await response.json();
       console.log(data);
       if (response.ok) {
-        props.setFolders((prevFolders) =>
-          prevFolders.map((folder) =>
-            folder.id === folderId ? { ...folder, title: folderTitle } : folder,
-          ),
+        props.setFiles((prevFiles) =>
+          prevFiles.map((file) => (file.id === data.id ? data : file)),
         );
-        props.setSubfolders((prevFolders) =>
-          prevFolders.map((folder) =>
-            folder.id === folderId ? { ...folder, title: folderTitle } : folder,
-          ),
-        );
-        props.setFilteredSubfolders((prevFolders) =>
-          prevFolders.map((folder) =>
-            folder.id === folderId ? { ...folder, title: folderTitle } : folder,
-          ),
+        props.setFilteredFiles((prevFiles) =>
+          prevFiles.map((file) => (file.id === data.id ? data : file)),
         );
       } else {
         const errorArray = data.map((error) => {
@@ -81,7 +72,7 @@ const FileCard = (props) => {
               className="flex items-center gap-4"
               action="post"
               onSubmit={(e) => {
-                changeFolderName(e, props.folder.id, fileName);
+                changeFileName(e, props.file.id, fileName);
               }}
             >
               <input
@@ -114,7 +105,15 @@ const FileCard = (props) => {
             </form>
           )}
         </div>
-        <MenuOptions />
+        <MenuOptions
+          type="file"
+          toggleEditMode={toggleEditMode}
+          targetId={props.file.id}
+          file={props.file}
+          moveFileIntoFolder={props.moveFileIntoFolder}
+          parentFolder={props.file.folderId}
+          trashId={props.trashId}
+        />
       </button>
       {errors.length > 0 && (
         <p className="error-fade pointer-events-none translate-y-1 text-nowrap rounded border-transparent p-1 text-sm">

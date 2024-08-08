@@ -106,7 +106,7 @@ const Folder = (props) => {
           e.preventDefault();
           e.stopPropagation();
           props.handleId(props.folder.id);
-          toggleOpen();
+          // toggleOpen();
         }}
         onDragStart={(e) => props.onDragStart(e, props.folder.id, 'folder')}
         onDrop={(e) => handleDrop(e, props.folder.id)}
@@ -150,7 +150,7 @@ const Folder = (props) => {
 
           <div className="flex items-center gap-4">
             <ActionBtn
-              className="group-hover/folder:text-primary text-transparent"
+              className="group-hover/folder:text-primary text-primary lg:text-transparent"
               icon={mdiNoteEditOutline}
               onClick={(e) => {
                 e.stopPropagation();
@@ -160,7 +160,7 @@ const Folder = (props) => {
               <Label className="-translate-x-full" label="Edit folder name" />
             </ActionBtn>
             <ActionBtn
-              className="group-hover/folder:text-primary text-transparent"
+              className="group-hover/folder:text-primary text-primary lg:text-transparent"
               icon={mdiTrashCanOutline}
               onClick={(e) => {
                 console.log(props.trashId);
@@ -172,7 +172,8 @@ const Folder = (props) => {
             </ActionBtn>
             {props.folder.childFolders.length > 0 && (
               <span
-                className={`shrink-0 transition duration-300 ${openStatus && '-rotate-180'}`}
+                className={`-m-2 shrink-0 p-2 transition duration-300 ${openStatus && '-rotate-180'}`}
+                onClick={toggleOpen}
               >
                 <Icon
                   path={mdiChevronDown}

@@ -130,7 +130,14 @@ const FolderCard = (props) => {
             </form>
           )}
         </div>
-        <MenuOptions toggleEditMode={toggleEditMode} />
+        <MenuOptions
+          type="folder"
+          toggleEditMode={toggleEditMode}
+          moveIntoFolder={props.moveIntoFolder}
+          parentFolder={props.folder.parentFolderId}
+          targetId={props.folder.id}
+          trashId={props.trashId}
+        />
       </button>
       {errors.length > 0 && (
         <p className="error-fade pointer-events-none translate-y-1 text-nowrap rounded border-transparent p-1 text-sm">

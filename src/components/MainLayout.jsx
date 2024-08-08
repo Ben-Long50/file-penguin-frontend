@@ -8,15 +8,16 @@ import { ThemeContext } from './ThemeContext';
 const MainLayout = () => {
   const [loading, setLoading] = useState(true);
   const [folders, setFolders] = useState([]);
-  const [allId, setAllId] = useState('');
+  const [allId, setAllId] = useState(() => {
+    const value = localStorage.getItem('allId') || '';
+    return value;
+  });
   const [trashId, setTrashId] = useState(() => {
     const value = localStorage.getItem('trashId') || '';
-    console.log(value);
     return value;
   });
   const [activeId, setActiveId] = useState(() => {
     const value = localStorage.getItem('activeId') || '';
-    console.log(value);
     return value;
   });
   const { apiUrl, currentUser } = useContext(AuthContext);
@@ -40,6 +41,7 @@ const MainLayout = () => {
           const allFolder = data.find((folder) => folder.title === 'All files');
           const trashFolder = data.find((folder) => folder.title === 'Trash');
           setAllId(allFolder.id);
+          localStorage.setItem('allId', allFolder.id);
           setTrashId(trashFolder.id);
           localStorage.setItem('trashId', trashFolder.id);
           if (!localStorage.getItem('activeId')) {
