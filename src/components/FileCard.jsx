@@ -3,11 +3,13 @@ import Icon from '@mdi/react';
 import MenuOptions from './MenuOptions';
 import { useState, useContext } from 'react';
 import { AuthContext } from './AuthContext';
+import { format } from 'date-fns';
 
 const FileCard = (props) => {
   const [editMode, setEditMode] = useState(false);
   const [fileName, setFileName] = useState('');
   const [errors, setErrors] = useState([]);
+  const [displayMode, setDisplayMode] = useState(false);
   const { apiUrl } = useContext(AuthContext);
 
   const changeFileName = async (e, fileId, fileTitle) => {
@@ -26,7 +28,6 @@ const FileCard = (props) => {
         }),
       });
       const data = await response.json();
-      console.log(data);
       if (response.ok) {
         props.setFiles((prevFiles) =>
           prevFiles.map((file) => (file.id === data.id ? data : file)),
@@ -54,13 +55,18 @@ const FileCard = (props) => {
     setEditMode(!editMode);
   };
 
+  const toggleDisplayMode = () => {
+    setDisplayMode((prevDisplayMode) => !prevDisplayMode);
+  };
+
   return (
-    <div className="flex flex-col gap-1">
+    <div className="bg-secondary-2 list-primary hover:hover-secondary flex flex-col">
       <button
         key={props.file.id}
-        className="group/item bg-secondary-2 list-primary hover:hover-secondary flex items-center justify-between gap-8"
+        className="group/item flex items-center justify-between gap-8"
         onDragStart={(e) => props.onDragStart(e, props.file.id, 'file')}
         draggable
+        onClick={toggleDisplayMode}
       >
         <div className="flex items-center gap-4">
           <Icon path={mdiFileDocumentOutline} size={1.2} />
@@ -120,6 +126,19 @@ const FileCard = (props) => {
           {`${errors[0]}`}
         </p>
       )}
+      <details
+        className={`${displayMode && 'mt-3'} appearance-none`}
+        open={displayMode}
+        onClick={(e) => e.preventDefault()}
+      >
+        <summary className="cursor-pointer list-none"></summary>
+        <img
+          className="mb-3 max-w-full rounded"
+          src={props.file.url}
+          alt={`${props.file.title} preview`}
+        />
+        <p className="text-tertiary text-sm">{`Uploaded at ${format(props.file.uploadedAt, 'pp')} on ${format(props.file.uploadedAt, 'PP')}`}</p>
+      </details>
     </div>
   );
 };
