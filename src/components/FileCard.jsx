@@ -127,11 +127,11 @@ const FileCard = (props) => {
         </p>
       )}
       <details
-        className={`${displayMode && 'mt-3'} appearance-none`}
+        className={`${displayMode && 'mt-3'} appearance-none [&_summary::-webkit-details-marker]:hidden`}
         open={displayMode}
         onClick={(e) => e.preventDefault()}
       >
-        <summary className="cursor-pointer list-none"></summary>
+        <summary className="list-none"></summary>
         <img
           className="mb-3 max-w-full rounded"
           src={props.file.url}
