@@ -51,6 +51,12 @@ const Sidebar = (props) => {
 
   const createFolder = async () => {
     const token = localStorage.getItem('token');
+    let parentFolderId;
+    if (props.activeId === props.allId) {
+      parentFolderId = null;
+    } else {
+      parentFolderId = props.activeId;
+    }
     try {
       const response = await fetch(`${apiUrl}/folders`, {
         method: 'POST',
@@ -58,7 +64,7 @@ const Sidebar = (props) => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ title: input }),
+        body: JSON.stringify({ title: input, parentFolderId }),
       });
       const data = await response.json();
       if (response.ok) {
@@ -171,6 +177,11 @@ const Sidebar = (props) => {
                   folder={folder}
                   activeId={props.activeId}
                   handleId={handleId}
+                  trashId={props.trashId}
+                  allowDrop={props.allowDrop}
+                  onDragStart={props.onDragStart}
+                  moveIntoFolder={props.moveIntoFolder}
+                  moveFileIntoFolder={props.moveFileIntoFolder}
                 />
               );
             }
@@ -179,6 +190,8 @@ const Sidebar = (props) => {
             <button
               className="list-primary hover-primary flex items-center gap-4"
               onClick={() => handleId(props.trashId)}
+              onDrop={(e) => props.moveIntoFolder(e, props.trashId)}
+              onDragOver={props.allowDrop}
             >
               <Icon path={mdiTrashCanOutline} size={1.2} />
               <p>Trash</p>
@@ -188,11 +201,12 @@ const Sidebar = (props) => {
           <li>
             <List heading="Account">
               <button
-                className="list-secondary hover-primary flex items-center gap-4 p-3"
+                className="list-secondary hover-primary flex items-center gap-4 p-2"
                 onClick={props.changeTheme}
               >
                 <p>Change theme</p>
                 <Icon
+                  className="-my-1"
                   path={
                     props.theme === 'dark' ? mdiWeatherSunny : mdiWeatherNight
                   }
@@ -201,7 +215,7 @@ const Sidebar = (props) => {
               </button>
               <form action="/signin" onSubmit={signout}>
                 <button
-                  className="list-secondary hover-primary flex-grow p-3"
+                  className="list-secondary hover-primary flex-grow p-2"
                   type="submit"
                 >
                   Sign out

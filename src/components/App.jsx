@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import AuthProvider from './AuthContext';
 import ThemeProvider from './ThemeContext';
+import '../custom-scrollbar.css';
 
 const App = () => {
   return (

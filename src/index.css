@@ -55,6 +55,10 @@
     grid-template-columns: minmax(300px, 28rem) auto;
     grid-template-rows: 1fr;
   }
+  dialog::backdrop {
+    backdrop-filter: blur(5px) brightness(0.8); /* Adjust as needed */
+    background-color: rgba(0, 0, 0, 0.7); /* Adjust opacity */
+  }
 }
 
 @keyframes error-fade {
@@ -71,4 +75,17 @@
 
 .error-fade {
   animation: error-fade 6s forwards;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin {
+  animation: spin 0.5s linear infinite;
 }

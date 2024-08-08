@@ -4,7 +4,7 @@ const ActionBtn = (props) => {
   return (
     <button
       type="submit"
-      className={`${props.className} group/button rounded-full transition lg:text-transparent lg:duration-300`}
+      className={`${props.className} group/button rounded-full transition lg:duration-300`}
       onClick={props.onClick}
       onMouseLeave={props.onMouseLeave}
     >

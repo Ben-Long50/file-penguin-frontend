@@ -9,8 +9,16 @@ const MainLayout = () => {
   const [loading, setLoading] = useState(true);
   const [folders, setFolders] = useState([]);
   const [allId, setAllId] = useState('');
-  const [trashId, setTrashId] = useState('');
-  const [activeId, setActiveId] = useState('');
+  const [trashId, setTrashId] = useState(() => {
+    const value = localStorage.getItem('trashId') || '';
+    console.log(value);
+    return value;
+  });
+  const [activeId, setActiveId] = useState(() => {
+    const value = localStorage.getItem('activeId') || '';
+    console.log(value);
+    return value;
+  });
   const { apiUrl, currentUser } = useContext(AuthContext);
   const [visibility, setVisibility] = useState(true);
   const { theme, changeTheme } = useContext(ThemeContext);
@@ -33,6 +41,7 @@ const MainLayout = () => {
           const trashFolder = data.find((folder) => folder.title === 'Trash');
           setAllId(allFolder.id);
           setTrashId(trashFolder.id);
+          localStorage.setItem('trashId', trashFolder.id);
           if (!localStorage.getItem('activeId')) {
             localStorage.setItem('activeId', data[0].id);
             setActiveId(data[0].id);
@@ -48,6 +57,107 @@ const MainLayout = () => {
     };
     fetchFolders();
   }, [currentUser]);
+
+  const moveIntoFolder = async (e, folderId, targetId) => {
+    let dataTransferId;
+
+    if (e.dataTransfer) {
+      dataTransferId = e.dataTransfer.getData('id');
+    }
+    const childId = dataTransferId ? Number(dataTransferId) : Number(targetId);
+
+    if (childId !== folderId) {
+      const token = localStorage.getItem('token');
+      try {
+        const response = await fetch(`${apiUrl}/folders/${folderId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ folderId, childId }),
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+          console.log(data);
+          setFolders((prevFolders) =>
+            prevFolders.map((folder) => {
+              if (folder.id === folderId) {
+                return data.parentFolder;
+              } else if (folder.id === childId) {
+                return data.childFolder;
+              } else if (folder.id === data.oldParentFolder?.id) {
+                return data.oldParentFolder;
+              } else {
+                return folder;
+              }
+            }),
+          );
+        } else {
+          const errorArray = data.map((error) => {
+            return error.msg;
+          });
+          return errorArray;
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  };
+
+  const moveFileIntoFolder = async (e, folderId, targetId) => {
+    let dataTransferId;
+
+    if (e.dataTransfer) {
+      dataTransferId = e.dataTransfer.getData('id');
+    }
+    const fileId = dataTransferId ? Number(dataTransferId) : Number(targetId);
+
+    const token = localStorage.getItem('token');
+    try {
+      const response = await fetch(`${apiUrl}/files/${fileId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ folderId, fileId }),
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        console.log(data);
+        setFolders((prevFolders) =>
+          prevFolders.map((folder) => {
+            if (folder.id === folderId) {
+              return data.newParentFolder;
+            } else if (folder.id === data.oldParentFolder?.id) {
+              return data.oldParentFolder;
+            } else {
+              return folder;
+            }
+          }),
+        );
+      } else {
+        const errorArray = data.map((error) => {
+          return error.msg;
+        });
+        return errorArray;
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const onDragStart = (e, id, type) => {
+    e.dataTransfer.setData('id', id);
+    e.dataTransfer.setData('type', type);
+  };
+
+  const allowDrop = (e) => {
+    e.preventDefault();
+  };
 
   const handleVisibility = () => {
     setVisibility((prevVisibility) => !prevVisibility);
@@ -71,8 +181,26 @@ const MainLayout = () => {
         handleVisibility={handleVisibility}
         theme={theme}
         changeTheme={changeTheme}
+        allowDrop={allowDrop}
+        onDragStart={onDragStart}
+        moveIntoFolder={moveIntoFolder}
+        moveFileIntoFolder={moveFileIntoFolder}
       />
-      <Outlet context={{ activeId, setActiveId, visibility, folders }} />
+      <Outlet
+        context={{
+          activeId,
+          allId,
+          trashId,
+          setActiveId,
+          visibility,
+          folders,
+          setFolders,
+          allowDrop,
+          onDragStart,
+          moveIntoFolder,
+          moveFileIntoFolder,
+        }}
+      />
     </div>
   );
 };
