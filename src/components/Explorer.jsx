@@ -322,9 +322,18 @@ const Explorer = () => {
           <div className="group/upload text-primary bg-secondary-2 mb-4 flex flex-col gap-2 rounded p-3">
             <h3 className="mb-2 text-lg">Files for upload:</h3>
             {errors.length > 0 && (
-              <p className="error-fade pointer-events-none -mt-2 text-nowrap rounded border-transparent text-sm">
-                {`${errors[0]}`}
-              </p>
+              <div className="-mt-2 flex flex-col gap-1">
+                {errors.map((error, index) => {
+                  return (
+                    <p
+                      key={index}
+                      className="error-fade pointer-events-none text-nowrap border-transparent text-sm"
+                    >
+                      {error}
+                    </p>
+                  );
+                })}
+              </div>
             )}
             {filesToUpload.map((file, index) => {
               return (
