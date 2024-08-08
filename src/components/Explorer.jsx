@@ -256,15 +256,17 @@ const Explorer = () => {
             style={{ display: 'none' }}
             onChange={handleFileChange}
           />
-          <Button
-            className="my-3 flex shrink-0 items-center gap-2 p-1 sm:p-2"
-            onClick={handleButtonClick}
-          >
-            <Icon path={mdiUpload} size={1.2} />
-            {containerWidth > 640 && (
-              <h2 className="pr-1 text-lg font-semibold">Upload files</h2>
-            )}
-          </Button>
+          {Number(activeId) !== trashId && (
+            <Button
+              className="my-3 flex shrink-0 items-center gap-2 p-1 sm:p-2"
+              onClick={handleButtonClick}
+            >
+              <Icon path={mdiUpload} size={1.2} />
+              {containerWidth > 640 && (
+                <h2 className="pr-1 text-lg font-semibold">Upload files</h2>
+              )}
+            </Button>
+          )}
           <input
             ref={inputRef}
             className="bg-primary-2 text-primary focus w-full rounded p-1 text-lg"

@@ -24,6 +24,7 @@ const Sidebar = (props) => {
     width: window.innerWidth,
     height: window.innerHeight,
   });
+  const [errors, setErrors] = useState([]);
   const { apiUrl, signout, currentUser } = useContext(AuthContext);
 
   const handleResize = () => {
@@ -52,10 +53,11 @@ const Sidebar = (props) => {
   const createFolder = async () => {
     const token = localStorage.getItem('token');
     let parentFolderId;
-    if (props.activeId === props.allId) {
+    console.log(props.activeId, props.allId);
+    if (Number(props.activeId) === props.allId) {
       parentFolderId = null;
     } else {
-      parentFolderId = props.activeId;
+      parentFolderId = Number(props.activeId);
     }
     try {
       const response = await fetch(`${apiUrl}/folders`, {
@@ -67,14 +69,29 @@ const Sidebar = (props) => {
         body: JSON.stringify({ title: input, parentFolderId }),
       });
       const data = await response.json();
+      console.log(data);
       if (response.ok) {
         props.setFolders((prevFolders) => {
-          const updatedFolders = prevFolders.map((folder) =>
-            folder.id === data.parentFolder.id ? data.parentFolder : folder,
-          );
+          let updatedFolders;
+          if (data.parentFolder !== null) {
+            updatedFolders = prevFolders.map((folder) =>
+              folder.id === data.parentFolder.id ? data.parentFolder : folder,
+            );
+          } else {
+            updatedFolders = props.folders;
+          }
           return [...updatedFolders, data.folder];
         });
         setInput('');
+        toggleCreateMode();
+      } else {
+        const errorArray = data.map((error) => {
+          return error.msg;
+        });
+        setErrors(errorArray);
+        setTimeout(() => {
+          setErrors([]);
+        }, 5000);
       }
     } catch (error) {
       console.error(error);
@@ -140,21 +157,26 @@ const Sidebar = (props) => {
             <h2 className="pr-1 text-lg font-semibold">Add Folder</h2>
           </Button>
           {createMode && (
-            <form className="flex flex-col gap-4 py-2">
+            <form
+              className="flex flex-col gap-4 py-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                createFolder();
+              }}
+            >
               <input
                 className="bg-primary-2 text-primary focus w-full rounded p-1 text-lg"
                 placeholder="New folder name"
                 onChange={handleInput}
-              ></input>
+                value={input}
+              />
+              {errors.length > 0 && (
+                <p className="error-fade pointer-events-none text-nowrap rounded border-transparent text-sm">
+                  {`${errors[0]}`}
+                </p>
+              )}
               <div className="flex items-center justify-between">
-                <Button
-                  className="p-1"
-                  type="submit"
-                  onClick={() => {
-                    toggleCreateMode();
-                    createFolder();
-                  }}
-                >
+                <Button className="p-1" type="submit">
                   Create
                 </Button>
                 <Button className="p-1" onClick={toggleCreateMode}>
