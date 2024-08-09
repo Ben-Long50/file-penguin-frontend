@@ -59,6 +59,18 @@ const FileCard = (props) => {
     setDisplayMode((prevDisplayMode) => !prevDisplayMode);
   };
 
+  const imageFileTypes = [
+    'jpeg',
+    'jpg',
+    'png',
+    'gif',
+    'webp',
+    'svg+xml',
+    'svg',
+    'bmp',
+    'tiff',
+  ];
+
   return (
     <div className="bg-secondary-2 list-primary hover:hover-secondary flex flex-col">
       <button
@@ -127,16 +139,25 @@ const FileCard = (props) => {
         </p>
       )}
       <details
-        className={`${displayMode && 'mt-3'} appearance-none [&_summary::-webkit-details-marker]:hidden`}
+        className={`${displayMode && 'mt-3'} [&_summary::-webkit-details-marker]:hidden`}
         open={displayMode}
         onClick={(e) => e.preventDefault()}
       >
         <summary className="list-none"></summary>
-        <img
-          className="mb-3 max-w-full rounded"
-          src={props.file.url}
-          alt={`${props.file.title} preview`}
-        />
+        {!imageFileTypes.includes(props.file.ext) ? (
+          <iframe
+            className="mb-3 max-w-full rounded"
+            src={props.file.url}
+            width="100%"
+            height="500"
+          />
+        ) : (
+          <img
+            className="mb-3 max-w-full rounded"
+            src={props.file.url}
+            alt={`${props.file.title} preview`}
+          />
+        )}
         <p className="text-tertiary text-sm">{`Uploaded at ${format(props.file.uploadedAt, 'pp')} on ${format(props.file.uploadedAt, 'PP')}`}</p>
       </details>
     </div>
