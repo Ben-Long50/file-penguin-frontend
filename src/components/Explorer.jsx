@@ -199,7 +199,7 @@ const Explorer = () => {
   const deleteTrashContents = async () => {
     const token = localStorage.getItem('token');
     try {
-      const response = await fetch(`${apiUrl}/folders/${trashId}`, {
+      const response = await fetch(`${apiUrl}/folders/${trashId}/trash`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -213,7 +213,7 @@ const Explorer = () => {
         setFolders((prevFolders) =>
           prevFolders.map((folder) => {
             if (folder.id === trashId) {
-              return data;
+              return data.trashFolder;
             } else {
               return folder;
             }

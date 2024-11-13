@@ -128,6 +128,7 @@ const FileCard = (props) => {
           toggleEditMode={toggleEditMode}
           targetId={props.file.id}
           file={props.file}
+          setFilteredFiles={props.setFilteredFiles}
           moveFileIntoFolder={props.moveFileIntoFolder}
           parentFolder={props.file.folderId}
           trashId={props.trashId}

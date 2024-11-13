@@ -134,6 +134,7 @@ const FolderCard = (props) => {
           type="folder"
           toggleEditMode={toggleEditMode}
           moveIntoFolder={props.moveIntoFolder}
+          setFilteredSubfolders={props.setFilteredSubfolders}
           parentFolder={props.folder.parentFolderId}
           targetId={props.folder.id}
           trashId={props.trashId}

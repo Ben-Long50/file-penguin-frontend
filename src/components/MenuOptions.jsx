@@ -6,10 +6,12 @@ import {
   mdiDownload,
 } from '@mdi/js';
 import Icon from '@mdi/react';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useContext } from 'react';
 import ActionBtn from './ActionBtn';
+import { AuthContext } from './AuthContext';
 
 const MenuOptions = (props) => {
+  const { apiUrl } = useContext(AuthContext);
   const [menuVisibility, setMenuVisibility] = useState(false);
   const menuRef = useRef(null);
 
@@ -30,11 +32,46 @@ const MenuOptions = (props) => {
     setMenuVisibility(!menuVisibility);
   };
 
-  const handleTrash = (e, id, targetId) => {
+  const restoreTrash = (e, id, targetId) => {
     if (props.type === 'folder') {
       props.moveIntoFolder(e, id, targetId);
     } else if (props.type === 'file') {
       props.moveFileIntoFolder(e, id, targetId);
+    }
+  };
+
+  const deleteTrash = async (id) => {
+    let endpoint;
+    if (props.type === 'folder') {
+      endpoint = `folders/${id}`;
+    } else if (props.type === 'file') {
+      endpoint = `files/${id}`;
+    }
+    const token = localStorage.getItem('token');
+    try {
+      const response = await fetch(`${apiUrl}/${endpoint}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ folderId: Number(id) }),
+      });
+      const data = await response.json();
+      console.log(data.message);
+      if (response.ok) {
+        if (props.type === 'folder') {
+          props.setFilteredSubfolders((prevFolders) =>
+            prevFolders.filter((folder) => folder.id !== id),
+          );
+        } else if (props.type === 'file') {
+          props.setFilteredFiles((prevFiles) =>
+            prevFiles.filter((file) => file.id !== id),
+          );
+        }
+      }
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -94,7 +131,7 @@ const MenuOptions = (props) => {
               className="hover:bg-secondary-2 flex items-center gap-4 whitespace-nowrap rounded-b p-2"
               onClick={(e) => {
                 e.stopPropagation();
-                handleTrash(e, props.trashId, props.targetId);
+                restoreTrash(e, props.trashId, props.targetId);
               }}
             >
               <Icon path={mdiTrashCanOutline} size={1.2} />
@@ -102,16 +139,28 @@ const MenuOptions = (props) => {
             </div>
           </>
         ) : (
-          <div
-            className="hover:bg-secondary-2 flex items-center gap-4 whitespace-nowrap rounded-b p-2"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleTrash(e, null, props.targetId);
-            }}
-          >
-            <Icon path={mdiDeleteRestore} size={1.2} />
-            <p>Restore from trash</p>
-          </div>
+          <>
+            <div
+              className="hover:bg-secondary-2 flex items-center gap-4 whitespace-nowrap rounded-b p-2"
+              onClick={(e) => {
+                e.stopPropagation();
+                restoreTrash(e, null, props.targetId);
+              }}
+            >
+              <Icon path={mdiDeleteRestore} size={1.2} />
+              <p>Restore from trash</p>
+            </div>
+            <div
+              className="hover:bg-secondary-2 flex items-center gap-4 whitespace-nowrap rounded-b p-2"
+              onClick={(e) => {
+                e.stopPropagation();
+                deleteTrash(props.targetId);
+              }}
+            >
+              <Icon path={mdiTrashCanOutline} size={1.2} />
+              <p>Delete permenantly</p>
+            </div>
+          </>
         )}
       </div>
     </ActionBtn>
