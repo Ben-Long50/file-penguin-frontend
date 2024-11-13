@@ -269,7 +269,7 @@ const Explorer = () => {
           )}
           <input
             ref={inputRef}
-            className="bg-primary-2 text-primary focus w-full rounded p-1 text-lg"
+            className="bg-primary-2 text-primary focus w-full rounded p-2 text-lg"
             placeholder="Search in folder"
             onChange={handleChange}
           />
@@ -301,14 +301,14 @@ const Explorer = () => {
                 contents?
                 <div className="mt-4 flex items-center justify-between">
                   <Button
-                    className="p-2 text-lg lg:text-xl"
+                    className="px-3 py-2 text-lg font-semibold lg:text-xl"
                     onClick={deleteTrashContents}
                   >
                     Confirm
                   </Button>
                   <SadPenguinIcon className="text-primary -my-4 size-28" />
                   <Button
-                    className="p-2 text-lg lg:text-xl"
+                    className="px-3 py-2 text-lg font-semibold lg:text-xl"
                     onClick={() => dialogRef.current.close()}
                   >
                     Cancel
@@ -356,10 +356,17 @@ const Explorer = () => {
               );
             })}
             <div className="mt-2 flex items-center justify-between">
-              <Button className="p-1" type="submit" onClick={uploadFiles}>
+              <Button
+                className="px-3 py-2 font-semibold"
+                type="submit"
+                onClick={uploadFiles}
+              >
                 Upload
               </Button>
-              <Button className="p-1" onClick={() => setFilesToUpload([])}>
+              <Button
+                className="px-3 py-2 font-semibold"
+                onClick={() => setFilesToUpload([])}
+              >
                 Cancel
               </Button>
             </div>
@@ -367,9 +374,11 @@ const Explorer = () => {
         )}
         {Number(activeId) !== allId &&
           (filteredSubfolders.length > 0 ? (
-            <h3 className="text-secondary text-lg font-semibold">Subfolders</h3>
+            <h3 className="text-secondary mt-4 text-lg font-semibold">
+              Subfolders
+            </h3>
           ) : (
-            <h3 className="text-secondary text-lg font-semibold">
+            <h3 className="text-secondary mt-4 text-lg font-semibold">
               No subfolders
             </h3>
           ))}

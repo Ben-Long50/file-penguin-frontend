@@ -10,27 +10,26 @@ const AuthLayout = () => {
 
   return (
     <div
-      className={`${theme} auth-layout-rows bg-primary grid min-h-dvh justify-center`}
+      className={`${theme} bg-primary flex min-h-dvh flex-col items-center justify-center gap-16 p-4 md:gap-32 md:p-8`}
     >
-      <div className="mb-10 flex flex-col items-center gap-4 self-end md:mb-32 md:flex-row md:gap-8">
-        <PenguinIcon className="size-24" />
-        <h1 className="text-primary text-5xl font-semibold md:text-6xl">
+      <div className="flex flex-wrap items-center justify-center gap-4 md:gap-8">
+        <PenguinIcon className="size-20 md:size-24" />
+        <h1 className="text-primary text-center text-4xl font-semibold md:text-6xl">
           File Penguin
         </h1>
       </div>
-      <div className="z-10 flex min-w-80 flex-col items-center justify-center self-start">
-        <button
-          className="text-secondary hover-primary absolute left-0 top-0 m-4 flex items-center gap-4 rounded p-2 text-xl transition duration-300"
-          onClick={changeTheme}
-        >
-          Theme
-          <Icon
-            path={theme === 'dark' ? mdiWeatherSunny : mdiWeatherNight}
-            size={1.2}
-          />
-        </button>
+      <div className="w-full max-w-96">
         <Outlet />
       </div>
+      <button
+        className="text-secondary hover-primary absolute left-0 top-0 m-4 flex items-center gap-4 rounded p-2 text-xl transition duration-300"
+        onClick={changeTheme}
+      >
+        <Icon
+          path={theme === 'light' ? mdiWeatherSunny : mdiWeatherNight}
+          size={1.2}
+        />
+      </button>
     </div>
   );
 };

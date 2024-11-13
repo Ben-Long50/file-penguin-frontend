@@ -49,9 +49,11 @@ const SignupForm = () => {
   };
 
   return (
-    <div className="flex w-1/2 min-w-80 flex-col gap-6">
+    <div className="flex w-full flex-col gap-6">
       <Form method="post" onSubmit={handleSubmit} buttonText="Sign Up">
-        <h1 className="text-primary text-4xl font-semibold">Sign Up</h1>
+        <h1 className="text-primary text-3xl font-semibold md:text-4xl">
+          Sign Up
+        </h1>
         <InputField
           label="Username"
           name="username"

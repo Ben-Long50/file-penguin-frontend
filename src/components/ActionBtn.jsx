@@ -4,12 +4,16 @@ const ActionBtn = (props) => {
   return (
     <button
       type="submit"
-      className={`${props.className} group/button rounded-full transition lg:duration-300`}
+      className={`${props.className} text-primary group/button flex shrink-0 items-center gap-4 p-2 transition lg:duration-300`}
       onClick={props.onClick}
       onMouseLeave={props.onMouseLeave}
     >
+      <Icon
+        className="shrink-0 text-inherit"
+        path={props.icon}
+        size={1.2}
+      ></Icon>
       {props.children}
-      <Icon className="text-inherit" path={props.icon} size={1}></Icon>
     </button>
   );
 };

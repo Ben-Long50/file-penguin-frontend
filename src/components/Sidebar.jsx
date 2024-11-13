@@ -125,7 +125,7 @@ const Sidebar = (props) => {
       className={`bg-primary z-10 col-end-2 row-start-1 row-end-2 flex h-dvh min-w-0 flex-col justify-between transition duration-300 max-sm:col-start-1 max-sm:col-end-3 ${!props.visibility && '-translate-x-full'} sticky top-0`}
     >
       <button
-        className={`shadow-custom accent-primary absolute right-4 top-4 z-20 grid shrink-0 place-content-center rounded-full hover:scale-110 ${!props.visibility && 'translate-x-180'}`}
+        className={`shadow-custom accent-primary absolute right-4 top-4 z-20 grid shrink-0 place-content-center rounded-full md:hover:scale-110 ${!props.visibility && 'translate-x-180'}`}
         onClick={props.handleVisibility}
       >
         <Icon
@@ -165,7 +165,7 @@ const Sidebar = (props) => {
               }}
             >
               <input
-                className="bg-primary-2 text-primary focus w-full rounded p-1 text-lg"
+                className="bg-primary-2 text-primary focus w-full rounded p-2 text-lg"
                 placeholder="New folder name"
                 onChange={handleInput}
                 value={input}
@@ -176,10 +176,13 @@ const Sidebar = (props) => {
                 </p>
               )}
               <div className="flex items-center justify-between">
-                <Button className="p-1" type="submit">
+                <Button className="px-3 py-2 font-semibold" type="submit">
                   Create
                 </Button>
-                <Button className="p-1" onClick={toggleCreateMode}>
+                <Button
+                  className="px-3 py-2 font-semibold"
+                  onClick={toggleCreateMode}
+                >
                   Cancel
                 </Button>
               </div>
@@ -187,14 +190,14 @@ const Sidebar = (props) => {
           )}
           <li>
             <button
-              className="list-primary hover-primary flex items-center gap-4"
+              className="list-primary md:hover-primary flex items-center gap-4"
               onClick={() => handleId(props.allId)}
             >
               <Icon
                 path={
                   props.activeId === 1 ? mdiFolderOpenOutline : mdiFolderOutline
                 }
-                size={1.2}
+                size={1.4}
               />
               <p>All Files</p>
             </button>
@@ -224,12 +227,12 @@ const Sidebar = (props) => {
           })}
           <li>
             <button
-              className="list-primary hover-primary flex items-center gap-4"
+              className="list-primary md:hover-primary flex items-center gap-4"
               onClick={() => handleId(props.trashId)}
               onDrop={(e) => handleDrop(e, props.trashId)}
               onDragOver={props.allowDrop}
             >
-              <Icon path={mdiTrashCanOutline} size={1.2} />
+              <Icon path={mdiTrashCanOutline} size={1.4} />
               <p>Trash</p>
             </button>
           </li>
@@ -244,7 +247,7 @@ const Sidebar = (props) => {
                 <Icon
                   className="-my-1"
                   path={
-                    props.theme === 'dark' ? mdiWeatherSunny : mdiWeatherNight
+                    props.theme === 'light' ? mdiWeatherSunny : mdiWeatherNight
                   }
                   size={1.2}
                 />

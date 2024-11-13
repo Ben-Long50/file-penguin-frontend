@@ -36,6 +36,8 @@ const MainLayout = () => {
           },
         });
         const data = await response.json();
+        console.log(data);
+
         if (response.ok) {
           setFolders(data);
           const allFolder = data.find((folder) => folder.title === 'All files');

@@ -81,7 +81,7 @@ const FolderCard = (props) => {
     <div className="flex flex-col gap-1">
       <button
         key={props.folder.id}
-        className="group/item bg-secondary-2 list-primary hover:hover-secondary flex items-center justify-between gap-8"
+        className="group/item bg-secondary-2 list-primary md:hover:hover-secondary flex w-full items-center justify-between gap-8"
         onClick={() => props.handleId(props.folder.id)}
         onDragStart={(e) => props.onDragStart(e, props.folder.id, 'folder')}
         onDrop={(e) => handleDrop(e, props.folder.id)}

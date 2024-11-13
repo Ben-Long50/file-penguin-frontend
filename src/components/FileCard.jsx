@@ -72,7 +72,7 @@ const FileCard = (props) => {
   ];
 
   return (
-    <div className="bg-secondary-2 list-primary hover:hover-secondary flex flex-col">
+    <div className="bg-secondary-2 list-primary md:hover:hover-secondary flex flex-col">
       <button
         key={props.file.id}
         className="group/item flex items-center justify-between gap-8"

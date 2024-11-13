@@ -13,8 +13,8 @@ const MenuOptions = (props) => {
   const [menuVisibility, setMenuVisibility] = useState(false);
   const menuRef = useRef(null);
 
-  const handleClickOutside = (event) => {
-    if (menuRef.current && !menuRef.current.contains(event.target)) {
+  const handleClickOutside = (e) => {
+    if (menuRef.current && !menuRef.current.contains(e.target)) {
       setMenuVisibility(false);
     }
   };
@@ -25,6 +25,10 @@ const MenuOptions = (props) => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  const toggleMenuVisibility = () => {
+    setMenuVisibility(!menuVisibility);
+  };
 
   const handleTrash = (e, id, targetId) => {
     if (props.type === 'folder') {
@@ -57,16 +61,16 @@ const MenuOptions = (props) => {
 
   return (
     <ActionBtn
-      className="text-primary -m-1 bg-transparent p-1"
+      className="text-primary relative -m-1 bg-transparent p-1"
       icon={mdiDotsHorizontal}
       onClick={(e) => {
         e.stopPropagation();
-        setMenuVisibility((prevVisibility) => !prevVisibility);
+        toggleMenuVisibility();
       }}
     >
       <div
         ref={menuRef}
-        className={`${props.className} ${menuVisibility ? 'absolute' : 'hidden'} bg-secondary shadow-custom flex -translate-x-full translate-y-4 flex-col rounded duration-300`}
+        className={`${props.className} ${menuVisibility ? 'visible opacity-100' : 'invisible translate-x-4 opacity-0'} timing bg-secondary shadow-custom absolute right-full top-0 flex flex-col rounded duration-300`}
       >
         {props.parentFolder !== props.trashId ? (
           <>

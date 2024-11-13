@@ -4,12 +4,14 @@ import {
   mdiTrashCanOutline,
   mdiChevronDown,
   mdiNoteEditOutline,
+  mdiDotsHorizontal,
 } from '@mdi/js';
 import Icon from '@mdi/react';
 import ActionBtn from './ActionBtn';
 import Label from './Label';
 import { AuthContext } from './AuthContext';
 import { useContext, useEffect, useState } from 'react';
+import MenuOptions from './MenuOptions';
 
 const Folder = (props) => {
   const [openStatus, setOpenStatus] = useState(() => {
@@ -101,12 +103,11 @@ const Folder = (props) => {
       onClick={(e) => e.preventDefault()}
     >
       <summary
-        className="list-primary hover-primary group/folder"
+        className="list-primary md:hover-primary group/folder"
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
           props.handleId(props.folder.id);
-          // toggleOpen();
         }}
         onDragStart={(e) => props.onDragStart(e, props.folder.id, 'folder')}
         onDrop={(e) => handleDrop(e, props.folder.id)}
@@ -122,7 +123,7 @@ const Folder = (props) => {
                   ? mdiFolderOpenOutline
                   : mdiFolderOutline
               }
-              size={1.2}
+              size={1.4}
             />
             {!editMode ? (
               <p>{props.folder.title}</p>
@@ -149,27 +150,6 @@ const Folder = (props) => {
           </div>
 
           <div className="flex items-center gap-4">
-            <ActionBtn
-              className="group-hover/folder:text-primary text-primary lg:text-transparent"
-              icon={mdiNoteEditOutline}
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleEditMode();
-              }}
-            >
-              <Label className="-translate-x-full" label="Edit folder name" />
-            </ActionBtn>
-            <ActionBtn
-              className="group-hover/folder:text-primary text-primary lg:text-transparent"
-              icon={mdiTrashCanOutline}
-              onClick={(e) => {
-                console.log(props.trashId);
-                e.stopPropagation();
-                props.moveIntoFolder(e, props.trashId, props.folder.id);
-              }}
-            >
-              <Label className="-translate-x-full" label="Move to trash" />
-            </ActionBtn>
             {props.folder.childFolders.length > 0 && (
               <span
                 className={`-m-2 shrink-0 p-2 transition duration-300 ${openStatus && '-rotate-180'}`}
@@ -182,6 +162,14 @@ const Folder = (props) => {
                 ></Icon>
               </span>
             )}
+            <MenuOptions
+              type="folder"
+              toggleEditMode={toggleEditMode}
+              moveIntoFolder={props.moveIntoFolder}
+              parentFolder={props.folder.parentFolderId}
+              targetId={props.folder.id}
+              trashId={props.trashId}
+            />
           </div>
         </div>
         {errors.length > 0 && (

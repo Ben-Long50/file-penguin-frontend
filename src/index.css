@@ -33,6 +33,9 @@
   .text-error {
     @apply text-red-600 dark:text-red-500;
   }
+  .timing {
+    @apply transition-all duration-200;
+  }
   .list-primary {
     @apply text-primary block w-full cursor-pointer rounded p-2 text-left text-base font-medium transition duration-300;
   }
@@ -40,7 +43,7 @@
     @apply text-secondary block w-full cursor-pointer rounded pr-2 text-left text-base font-medium transition duration-300;
   }
   .accent-primary {
-    @apply bg-orange-300 text-gray-900 transition duration-300 hover:bg-orange-400 dark:border-none dark:shadow-black;
+    @apply bg-orange-300 text-gray-900 transition duration-300 md:hover:bg-orange-400 dark:border-none dark:shadow-black;
   }
   .shadow-custom {
     @apply shadow-md shadow-gray-400 dark:shadow-black;
