@@ -9,11 +9,16 @@ import Icon from '@mdi/react';
 import { useState, useRef, useEffect, useContext } from 'react';
 import ActionBtn from './ActionBtn';
 import { AuthContext } from './AuthContext';
+import { DragDropContext } from './DragDropContext';
+import useDeleteItemMutation from '../hooks/useDeleteItemMutation/useDeleteItemMutation';
 
 const MenuOptions = (props) => {
   const { apiUrl } = useContext(AuthContext);
+  const { handleMoveFolder, handleMoveFile } = useContext(DragDropContext);
   const [menuVisibility, setMenuVisibility] = useState(false);
   const menuRef = useRef(null);
+
+  const deleteItem = useDeleteItemMutation(apiUrl);
 
   const handleClickOutside = (e) => {
     if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -34,44 +39,9 @@ const MenuOptions = (props) => {
 
   const restoreTrash = (e, id, targetId) => {
     if (props.type === 'folder') {
-      props.moveIntoFolder(e, id, targetId);
+      handleMoveFolder(e, id, targetId);
     } else if (props.type === 'file') {
-      props.moveFileIntoFolder(e, id, targetId);
-    }
-  };
-
-  const deleteTrash = async (id) => {
-    let endpoint;
-    if (props.type === 'folder') {
-      endpoint = `folders/${id}`;
-    } else if (props.type === 'file') {
-      endpoint = `files/${id}`;
-    }
-    const token = localStorage.getItem('token');
-    try {
-      const response = await fetch(`${apiUrl}/${endpoint}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ folderId: Number(id) }),
-      });
-      const data = await response.json();
-      console.log(data.message);
-      if (response.ok) {
-        if (props.type === 'folder') {
-          props.setFilteredSubfolders((prevFolders) =>
-            prevFolders.filter((folder) => folder.id !== id),
-          );
-        } else if (props.type === 'file') {
-          props.setFilteredFiles((prevFiles) =>
-            prevFiles.filter((file) => file.id !== id),
-          );
-        }
-      }
-    } catch (error) {
-      console.error(error);
+      handleMoveFile(e, id, targetId);
     }
   };
 
@@ -154,7 +124,7 @@ const MenuOptions = (props) => {
               className="hover:bg-secondary-2 flex items-center gap-4 whitespace-nowrap rounded-b p-2"
               onClick={(e) => {
                 e.stopPropagation();
-                deleteTrash(props.targetId);
+                deleteItem.mutate({ itemId: props.targetId, type: props.type });
               }}
             >
               <Icon path={mdiTrashCanOutline} size={1.2} />

@@ -4,6 +4,8 @@ import MenuOptions from './MenuOptions';
 import { useState, useContext } from 'react';
 import { AuthContext } from './AuthContext';
 import { format } from 'date-fns';
+import { DragDropContext } from './DragDropContext';
+import useEditFileMutation from '../hooks/useEditFileMutation/useEditFileMutation';
 
 const FileCard = (props) => {
   const [editMode, setEditMode] = useState(false);
@@ -11,43 +13,14 @@ const FileCard = (props) => {
   const [errors, setErrors] = useState([]);
   const [displayMode, setDisplayMode] = useState(false);
   const { apiUrl } = useContext(AuthContext);
+  const { onDragStart } = useContext(DragDropContext);
 
-  const changeFileName = async (e, fileId, fileTitle) => {
+  const editFile = useEditFileMutation(apiUrl, setErrors);
+
+  const handleEditFile = (e, fileId, fileTitle) => {
     e.preventDefault();
-    const token = localStorage.getItem('token');
-    try {
-      const response = await fetch(`${apiUrl}/files/${fileId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          fileId: Number(fileId),
-          fileTitle: fileTitle,
-        }),
-      });
-      const data = await response.json();
-      if (response.ok) {
-        props.setFiles((prevFiles) =>
-          prevFiles.map((file) => (file.id === data.id ? data : file)),
-        );
-        props.setFilteredFiles((prevFiles) =>
-          prevFiles.map((file) => (file.id === data.id ? data : file)),
-        );
-      } else {
-        const errorArray = data.map((error) => {
-          return error.msg;
-        });
-        setErrors(errorArray);
-        setTimeout(() => {
-          setErrors([]);
-        }, 5000);
-      }
-      toggleEditMode();
-    } catch (error) {
-      console.error(error);
-    }
+    editFile.mutate({ fileId, fileTitle });
+    toggleEditMode();
   };
 
   const toggleEditMode = () => {
@@ -76,7 +49,7 @@ const FileCard = (props) => {
       <button
         key={props.file.id}
         className="group/item flex items-center justify-between gap-8"
-        onDragStart={(e) => props.onDragStart(e, props.file.id, 'file')}
+        onDragStart={(e) => onDragStart(e, props.file.id, 'file')}
         draggable
         onClick={toggleDisplayMode}
       >
@@ -90,7 +63,7 @@ const FileCard = (props) => {
               className="flex items-center gap-4"
               action="post"
               onSubmit={(e) => {
-                changeFileName(e, props.file.id, fileName);
+                handleEditFile(e, props.file.id, fileName);
               }}
             >
               <input

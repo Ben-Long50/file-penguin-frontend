@@ -4,6 +4,7 @@ import Form from './Form';
 import InputField from './InputField';
 import Button from './Button';
 import { AuthContext } from './AuthContext';
+import useSigninMutation from '../hooks/useSigninMutation/useSigninMutation';
 
 const SigninForm = () => {
   const [formData, setFormData] = useState({
@@ -13,6 +14,8 @@ const SigninForm = () => {
   const [errors, setErrors] = useState([]);
   const { signin, apiUrl } = useContext(AuthContext);
   const navigate = useNavigate();
+
+  const signinMutation = useSigninMutation(apiUrl, setErrors, signin);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -31,28 +34,7 @@ const SigninForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const response = await fetch(`${apiUrl}/users/signin`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-      const result = await response.json();
-      if (response.ok) {
-        localStorage.setItem('token', result.token);
-        signin(result.user);
-        navigate('/home/all');
-      } else {
-        const errorArray = result.map((error) => {
-          return error.msg;
-        });
-        setErrors(errorArray);
-      }
-    } catch (error) {
-      console.error('Error submitting form:', error);
-    }
+    signinMutation.mutate(formData);
   };
 
   return (

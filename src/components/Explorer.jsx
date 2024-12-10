@@ -1,5 +1,4 @@
 import {
-  mdiPlus,
   mdiFolderOpenOutline,
   mdiFileDocumentOutline,
   mdiClose,
@@ -25,26 +24,15 @@ import PerfectScrollbar from 'react-perfect-scrollbar';
 import FolderCard from './FolderCard';
 import FileCard from './FileCard';
 import SadPenguinIcon from './SadPenguinIcon';
+import useFolderContentQuery from '../hooks/useFolderContentQuery/useFolderContentQuery';
+import useUploadFilesMutation from '../hooks/useUploadFilesMutation/useUploadFilesMutation';
+import useDeleteTrashMutation from '../hooks/useDeleteTrashMutation/useDeleteTrashMutation';
 
 const Explorer = () => {
-  const [loading, setLoading] = useState(false);
-  const {
-    activeId,
-    allId,
-    trashId,
-    setActiveId,
-    visibility,
-    folders,
-    setFolders,
-    allowDrop,
-    onDragStart,
-    moveIntoFolder,
-    moveFileIntoFolder,
-  } = useOutletContext();
+  const { activeId, allId, trashId, setActiveId, visibility, folders } =
+    useOutletContext();
   const [title, setTitle] = useState('');
-  const [subfolders, setSubfolders] = useState([]);
   const [filteredSubfolders, setFilteredSubfolders] = useState([]);
-  const [files, setFiles] = useState([]);
   const [filteredFiles, setFilteredFiles] = useState([]);
   const [filesToUpload, setFilesToUpload] = useState([]);
   const [containerWidth, setContainerWidth] = useState(0);
@@ -55,6 +43,42 @@ const Explorer = () => {
   const containerRef = useRef(null);
   const inputRef = useRef(null);
   const dialogRef = useRef(null);
+
+  const folderContents = useFolderContentQuery(allId, activeId, apiUrl);
+  const uploadFiles = useUploadFilesMutation(
+    activeId,
+    apiUrl,
+    setErrors,
+    setFilesToUpload,
+  );
+
+  const openModal = () => {
+    if (dialogRef.current) {
+      dialogRef.current.showModal();
+    }
+  };
+
+  const closeModal = () => {
+    if (dialogRef.current) {
+      dialogRef.current.close();
+    }
+  };
+
+  const deleteTrash = useDeleteTrashMutation(trashId, apiUrl, closeModal);
+
+  useEffect(() => {
+    if (!folderContents.isLoading) {
+      if (Number(activeId) === allId) {
+        setFilteredSubfolders([]);
+        setFilteredFiles(folderContents.data.files);
+        setTitle('All Files');
+      } else {
+        setFilteredSubfolders(folderContents.data.childFolders);
+        setFilteredFiles(folderContents.data.files);
+        setTitle(folderContents.data.title);
+      }
+    }
+  }, [folderContents.data, activeId]);
 
   const updateWidth = () => {
     if (containerRef.current) {
@@ -72,89 +96,14 @@ const Explorer = () => {
     };
   }, []);
 
-  useEffect(() => {
-    setLoading(true);
-    const fetchFolderContents = async () => {
-      const token = localStorage.getItem('token');
-      try {
-        const response =
-          Number(activeId) === allId
-            ? await fetch(`${apiUrl}/files`, {
-                headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: `Bearer ${token}`,
-                },
-              })
-            : await fetch(`${apiUrl}/folders/${activeId}`, {
-                headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: `Bearer ${token}`,
-                },
-              });
-
-        const data = await response.json();
-        if (response.ok) {
-          if (Number(activeId) === allId) {
-            setSubfolders([]);
-            setFilteredSubfolders([]);
-            setFiles(data);
-            setFilteredFiles(data);
-            setTitle('All Files');
-          } else {
-            setSubfolders(data.childFolders);
-            setFilteredSubfolders(data.childFolders);
-            setFiles(data.files);
-            setFilteredFiles(data.files);
-            setTitle(data.title);
-          }
-        }
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchFolderContents();
-  }, [activeId, folders]);
-
-  const uploadFiles = async () => {
-    setLoading(true);
-    const token = localStorage.getItem('token');
+  const handleFilesUpload = () => {
     const formData = new FormData();
 
     filesToUpload.map((file) => {
       formData.append('file', file);
     });
 
-    try {
-      const response = await fetch(`${apiUrl}/folders/${activeId}/files`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
-      const data = await response.json();
-      console.log(data);
-      if (response.ok) {
-        setFiles((prevFiles) => [...prevFiles, ...data]);
-        setFilteredFiles((prevFiles) => [...prevFiles, ...data]);
-        console.log(data);
-        setFilesToUpload([]);
-      } else {
-        const errorArray = data.map((error) => {
-          return error.msg;
-        });
-        setErrors(errorArray);
-        setTimeout(() => {
-          setErrors([]);
-        }, 5000);
-      }
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
+    uploadFiles.mutate(formData);
   };
 
   const handleButtonClick = () => {
@@ -178,15 +127,17 @@ const Explorer = () => {
 
   const handleChange = () => {
     if (inputRef.current.value === '') {
-      setFilteredSubfolders(subfolders);
-      setFilteredFiles(files);
+      setFilteredSubfolders(folderContents.data?.childFolders);
+      setFilteredFiles(folderContents.data?.files);
     } else {
-      const filteredSubfolders = subfolders.filter((subfolder) => {
-        return subfolder.title
-          .toLowerCase()
-          .includes(inputRef.current.value.toLowerCase());
-      });
-      const filteredFiles = files.filter((files) => {
+      const filteredSubfolders = folderContents.data.childFolders?.filter(
+        (subfolder) => {
+          return subfolder.title
+            .toLowerCase()
+            .includes(inputRef.current.value.toLowerCase());
+        },
+      );
+      const filteredFiles = folderContents.data.files?.filter((files) => {
         return files.title
           .toLowerCase()
           .includes(inputRef.current.value.toLowerCase());
@@ -196,36 +147,7 @@ const Explorer = () => {
     }
   };
 
-  const deleteTrashContents = async () => {
-    const token = localStorage.getItem('token');
-    try {
-      const response = await fetch(`${apiUrl}/folders/${trashId}/trash`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ folderId: Number(trashId) }),
-      });
-      const data = await response.json();
-      console.log(data);
-      if (response.ok) {
-        setFolders((prevFolders) =>
-          prevFolders.map((folder) => {
-            if (folder.id === trashId) {
-              return data.trashFolder;
-            } else {
-              return folder;
-            }
-          }),
-        );
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  if (loading) {
+  if (folderContents.isLoading || folderContents.isPending) {
     return <Loading />;
   }
 
@@ -261,12 +183,19 @@ const Explorer = () => {
               className="my-3 flex shrink-0 items-center gap-2 p-1 sm:p-2"
               onClick={handleButtonClick}
             >
-              <Icon path={mdiUpload} size={1.2} />
-              {containerWidth > 640 && (
-                <h2 className="pr-1 text-lg font-semibold">Upload files</h2>
+              {uploadFiles.isPending ? (
+                <Loading className="text-gray-950" size={1.2} />
+              ) : (
+                <>
+                  <Icon path={mdiUpload} size={1.2} />
+                  {containerWidth > 640 && (
+                    <h2 className="pr-1 text-lg font-semibold">Upload files</h2>
+                  )}
+                </>
               )}
             </Button>
           )}
+
           <input
             ref={inputRef}
             className="bg-primary-2 text-primary focus w-full rounded p-2 text-lg"
@@ -287,10 +216,7 @@ const Explorer = () => {
             </Button>
           ) : (
             <>
-              <Button
-                className="p-1 sm:p-2"
-                onClick={() => dialogRef.current.showModal()}
-              >
+              <Button className="p-1 sm:p-2" onClick={openModal}>
                 <Icon path={mdiTrashCanOutline} size={1.2} />
               </Button>
               <dialog
@@ -302,14 +228,16 @@ const Explorer = () => {
                 <div className="mt-4 flex items-center justify-between">
                   <Button
                     className="px-3 py-2 text-lg font-semibold lg:text-xl"
-                    onClick={deleteTrashContents}
+                    onClick={() => {
+                      deleteTrash.mutate();
+                    }}
                   >
                     Confirm
                   </Button>
                   <SadPenguinIcon className="text-primary -my-4 size-28" />
                   <Button
                     className="px-3 py-2 text-lg font-semibold lg:text-xl"
-                    onClick={() => dialogRef.current.close()}
+                    onClick={closeModal}
                   >
                     Cancel
                   </Button>
@@ -359,7 +287,7 @@ const Explorer = () => {
               <Button
                 className="px-3 py-2 font-semibold"
                 type="submit"
-                onClick={uploadFiles}
+                onClick={handleFilesUpload}
               >
                 Upload
               </Button>
@@ -373,7 +301,7 @@ const Explorer = () => {
           </div>
         )}
         {Number(activeId) !== allId &&
-          (filteredSubfolders.length > 0 ? (
+          (filteredSubfolders?.length > 0 ? (
             <h3 className="text-secondary mt-4 text-lg font-semibold">
               Subfolders
             </h3>
@@ -382,43 +310,26 @@ const Explorer = () => {
               No subfolders
             </h3>
           ))}
-        {filteredSubfolders.map((folder) => {
+        {filteredSubfolders?.map((folder) => {
           return (
             <FolderCard
               key={folder.id}
               folder={folder}
               handleId={handleId}
-              setFolders={setFolders}
-              setSubfolders={setSubfolders}
-              setFilteredSubfolders={setFilteredSubfolders}
-              allowDrop={allowDrop}
-              onDragStart={onDragStart}
-              moveIntoFolder={moveIntoFolder}
-              moveFileIntoFolder={moveFileIntoFolder}
               trashId={trashId}
             />
           );
         })}
         {Number(activeId) !== allId &&
-          (filteredFiles.length > 0 ? (
+          (filteredFiles?.length > 0 ? (
             <h3 className="text-secondary mt-4 text-lg font-semibold">Files</h3>
           ) : (
             <h3 className="text-secondary mt-4 text-lg font-semibold">
               No files
             </h3>
           ))}
-        {filteredFiles.map((file) => {
-          return (
-            <FileCard
-              key={file.id}
-              file={file}
-              setFiles={setFiles}
-              setFilteredFiles={setFilteredFiles}
-              onDragStart={onDragStart}
-              moveFileIntoFolder={moveFileIntoFolder}
-              trashId={trashId}
-            />
-          );
+        {filteredFiles?.map((file) => {
+          return <FileCard key={file.id} file={file} trashId={trashId} />;
         })}
       </div>
     </PerfectScrollbar>

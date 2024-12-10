@@ -2,12 +2,11 @@ import Sidebar from './Sidebar';
 import { Outlet } from 'react-router-dom';
 import { useState, useEffect, useContext } from 'react';
 import { AuthContext } from './AuthContext';
-import Loading from './Loading';
 import { ThemeContext } from './ThemeContext';
+import useFolderQuery from '../hooks/useFolderQuery/useFolderQuery';
+import Loading from './Loading';
 
 const MainLayout = () => {
-  const [loading, setLoading] = useState(true);
-  const [folders, setFolders] = useState([]);
   const [allId, setAllId] = useState(() => {
     const value = localStorage.getItem('allId') || '';
     return value;
@@ -20,162 +19,45 @@ const MainLayout = () => {
     const value = localStorage.getItem('activeId') || '';
     return value;
   });
-  const { apiUrl, currentUser } = useContext(AuthContext);
+  const { apiUrl } = useContext(AuthContext);
   const [visibility, setVisibility] = useState(true);
-  const { theme, changeTheme } = useContext(ThemeContext);
+  const { theme } = useContext(ThemeContext);
+
+  const folders = useFolderQuery(apiUrl);
 
   useEffect(() => {
-    setLoading(true);
-    const token = localStorage.getItem('token');
-    const fetchFolders = async () => {
-      try {
-        const response = await fetch(`${apiUrl}/folders`, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const data = await response.json();
-        console.log(data);
-
-        if (response.ok) {
-          setFolders(data);
-          const allFolder = data.find((folder) => folder.title === 'All files');
-          const trashFolder = data.find((folder) => folder.title === 'Trash');
-          setAllId(allFolder.id);
-          localStorage.setItem('allId', allFolder.id);
-          setTrashId(trashFolder.id);
-          localStorage.setItem('trashId', trashFolder.id);
-          if (!localStorage.getItem('activeId')) {
-            localStorage.setItem('activeId', data[0].id);
-            setActiveId(data[0].id);
-          } else {
-            setActiveId(localStorage.getItem('activeId'));
-          }
-        }
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchFolders();
-  }, [currentUser]);
-
-  const moveIntoFolder = async (e, folderId, targetId) => {
-    let dataTransferId;
-
-    if (e.dataTransfer) {
-      dataTransferId = e.dataTransfer.getData('id');
-    }
-    const childId = dataTransferId ? Number(dataTransferId) : Number(targetId);
-
-    if (childId !== folderId) {
-      const token = localStorage.getItem('token');
-      try {
-        const response = await fetch(`${apiUrl}/folders/${folderId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ folderId, childId }),
-        });
-        const data = await response.json();
-
-        if (response.ok) {
-          console.log(data);
-          setFolders((prevFolders) =>
-            prevFolders.map((folder) => {
-              if (folder.id === folderId) {
-                return data.parentFolder;
-              } else if (folder.id === childId) {
-                return data.childFolder;
-              } else if (folder.id === data.oldParentFolder?.id) {
-                return data.oldParentFolder;
-              } else {
-                return folder;
-              }
-            }),
-          );
-        } else {
-          const errorArray = data.map((error) => {
-            return error.msg;
-          });
-          return errorArray;
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    }
-  };
-
-  const moveFileIntoFolder = async (e, folderId, targetId) => {
-    let dataTransferId;
-
-    if (e.dataTransfer) {
-      dataTransferId = e.dataTransfer.getData('id');
-    }
-    const fileId = dataTransferId ? Number(dataTransferId) : Number(targetId);
-
-    const token = localStorage.getItem('token');
-    try {
-      const response = await fetch(`${apiUrl}/files/${fileId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ folderId, fileId }),
-      });
-      const data = await response.json();
-
-      if (response.ok) {
-        console.log(data);
-        setFolders((prevFolders) =>
-          prevFolders.map((folder) => {
-            if (folder.id === folderId) {
-              return data.newParentFolder;
-            } else if (folder.id === data.oldParentFolder?.id) {
-              return data.oldParentFolder;
-            } else {
-              return folder;
-            }
-          }),
-        );
+    if (folders.data) {
+      const allFolder = folders.data.find(
+        (folder) => folder.title === 'All files',
+      );
+      const trashFolder = folders.data.find(
+        (folder) => folder.title === 'Trash',
+      );
+      setAllId(allFolder.id);
+      localStorage.setItem('allId', allFolder.id);
+      setTrashId(trashFolder.id);
+      localStorage.setItem('trashId', trashFolder.id);
+      if (!localStorage.getItem('activeId')) {
+        localStorage.setItem('activeId', allFolder.id);
+        setActiveId(allFolder.id);
       } else {
-        const errorArray = data.map((error) => {
-          return error.msg;
-        });
-        return errorArray;
+        setActiveId(localStorage.getItem('activeId'));
       }
-    } catch (error) {
-      console.error(error);
     }
-  };
-
-  const onDragStart = (e, id, type) => {
-    e.dataTransfer.setData('id', id);
-    e.dataTransfer.setData('type', type);
-  };
-
-  const allowDrop = (e) => {
-    e.preventDefault();
-  };
+  }, [folders.data]);
 
   const handleVisibility = () => {
     setVisibility((prevVisibility) => !prevVisibility);
   };
 
-  if (loading) {
+  if (folders.isLoading || folders.isPending) {
     return <Loading />;
   }
 
   return (
     <div className={`${theme} layout-cols bg-secondary grid grid-rows-1`}>
       <Sidebar
-        folders={folders}
-        setFolders={setFolders}
+        folders={folders.data}
         activeId={activeId}
         allId={allId}
         trashId={trashId}
@@ -183,12 +65,6 @@ const MainLayout = () => {
         visibility={visibility}
         setVisibility={setVisibility}
         handleVisibility={handleVisibility}
-        theme={theme}
-        changeTheme={changeTheme}
-        allowDrop={allowDrop}
-        onDragStart={onDragStart}
-        moveIntoFolder={moveIntoFolder}
-        moveFileIntoFolder={moveFileIntoFolder}
       />
       <Outlet
         context={{
@@ -197,12 +73,7 @@ const MainLayout = () => {
           trashId,
           setActiveId,
           visibility,
-          folders,
-          setFolders,
-          allowDrop,
-          onDragStart,
-          moveIntoFolder,
-          moveFileIntoFolder,
+          folders: folders.data,
         }}
       />
     </div>

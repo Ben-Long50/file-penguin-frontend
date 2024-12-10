@@ -3,75 +3,24 @@ import Icon from '@mdi/react';
 import MenuOptions from './MenuOptions';
 import { useState, useContext } from 'react';
 import { AuthContext } from './AuthContext';
+import { DragDropContext } from './DragDropContext';
+import useEditFolderMutation from '../hooks/useEditFolderMutation/useEditFolderMutation';
 
 const FolderCard = (props) => {
   const [editMode, setEditMode] = useState(false);
   const [folderName, setFolderName] = useState('');
   const [errors, setErrors] = useState([]);
   const { apiUrl } = useContext(AuthContext);
+  const { onDragStart, allowDrop, handleDrop } = useContext(DragDropContext);
 
-  const changeFolderName = async (e, folderId, folderTitle) => {
+  const editFolder = useEditFolderMutation(apiUrl, setErrors);
+
+  const handleEditFolder = async (e, folderId, folderTitle) => {
     e.preventDefault();
-    const token = localStorage.getItem('token');
-    try {
-      const response = await fetch(`${apiUrl}/folders/${folderId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          folderId: Number(folderId),
-          folderTitle: folderTitle,
-        }),
-      });
-      const data = await response.json();
-      console.log(data);
-      if (response.ok) {
-        props.setFolders((prevFolders) =>
-          prevFolders.map((folder) =>
-            folder.id === folderId ? { ...folder, title: folderTitle } : folder,
-          ),
-        );
-        props.setSubfolders((prevFolders) =>
-          prevFolders.map((folder) =>
-            folder.id === folderId ? { ...folder, title: folderTitle } : folder,
-          ),
-        );
-        props.setFilteredSubfolders((prevFolders) =>
-          prevFolders.map((folder) =>
-            folder.id === folderId ? { ...folder, title: folderTitle } : folder,
-          ),
-        );
-      } else {
-        const errorArray = data.map((error) => {
-          return error.msg;
-        });
-        setErrors(errorArray);
-        setTimeout(() => {
-          setErrors([]);
-        }, 5000);
-      }
-      toggleEditMode();
-    } catch (error) {
-      console.error(error);
-    }
+    editFolder.mutate({ folderId, folderTitle });
+    toggleEditMode();
   };
-  const handleDrop = async (e, folderId) => {
-    let errors;
-    const dataTransferType = e.dataTransfer.getData('type');
-    if (dataTransferType === 'file') {
-      errors = await props.moveFileIntoFolder(e, folderId);
-    } else if (dataTransferType === 'folder') {
-      errors = await props.moveIntoFolder(e, folderId);
-    }
-    if (errors) {
-      setErrors(errors);
-      setTimeout(() => {
-        setErrors([]);
-      }, 5000);
-    }
-  };
+
   const toggleEditMode = () => {
     setFolderName(props.folder.title);
     setEditMode(!editMode);
@@ -83,9 +32,9 @@ const FolderCard = (props) => {
         key={props.folder.id}
         className="group/item bg-secondary-2 list-primary md:hover:hover-secondary flex w-full items-center justify-between gap-8"
         onClick={() => props.handleId(props.folder.id)}
-        onDragStart={(e) => props.onDragStart(e, props.folder.id, 'folder')}
-        onDrop={(e) => handleDrop(e, props.folder.id)}
-        onDragOver={(e) => props.allowDrop(e)}
+        onDragStart={(e) => onDragStart(e, props.folder.id, 'folder')}
+        onDrop={(e) => handleDrop(e, props.folder.id, setErrors)}
+        onDragOver={(e) => allowDrop(e)}
         draggable
       >
         <div className="flex items-center gap-4">
@@ -97,7 +46,7 @@ const FolderCard = (props) => {
               className="flex items-center gap-4"
               action="post"
               onSubmit={(e) => {
-                changeFolderName(e, props.folder.id, folderName);
+                handleEditFolder(e, props.folder.id, folderName);
               }}
             >
               <input

@@ -16,6 +16,9 @@ import PerfectScrollbar from 'react-perfect-scrollbar';
 import PenguinIcon from './PenguinIcon';
 import Button from './Button';
 import Folder from './Folder';
+import useCreateFolderMutation from '../hooks/useCreateFolderMutation/useCreateFolderMutation';
+import { DragDropContext } from './DragDropContext';
+import { ThemeContext } from './ThemeContext';
 
 const Sidebar = (props) => {
   const [createMode, setCreateMode] = useState(false);
@@ -25,7 +28,20 @@ const Sidebar = (props) => {
     height: window.innerHeight,
   });
   const [errors, setErrors] = useState([]);
-  const { apiUrl, signout, currentUser } = useContext(AuthContext);
+  const { apiUrl, signout } = useContext(AuthContext);
+  const { theme, changeTheme } = useContext(ThemeContext);
+  const { allowDrop, handleDrop } = useContext(DragDropContext);
+
+  const toggleCreateMode = () => {
+    setCreateMode((prevCreateMode) => !prevCreateMode);
+  };
+
+  const createFolder = useCreateFolderMutation(
+    apiUrl,
+    setErrors,
+    setInput,
+    toggleCreateMode,
+  );
 
   const handleResize = () => {
     const newSize = {
@@ -50,74 +66,23 @@ const Sidebar = (props) => {
     };
   }, []);
 
-  const createFolder = async () => {
-    const token = localStorage.getItem('token');
+  const handleCreateFolder = () => {
     let parentFolderId;
-    console.log(props.activeId, props.allId);
     if (Number(props.activeId) === props.allId) {
       parentFolderId = null;
     } else {
       parentFolderId = Number(props.activeId);
     }
-    try {
-      const response = await fetch(`${apiUrl}/folders`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ title: input, parentFolderId }),
-      });
-      const data = await response.json();
-      console.log(data);
-      if (response.ok) {
-        props.setFolders((prevFolders) => {
-          let updatedFolders;
-          if (data.parentFolder !== null) {
-            updatedFolders = prevFolders.map((folder) =>
-              folder.id === data.parentFolder.id ? data.parentFolder : folder,
-            );
-          } else {
-            updatedFolders = props.folders;
-          }
-          return [...updatedFolders, data.folder];
-        });
-        setInput('');
-        toggleCreateMode();
-      } else {
-        const errorArray = data.map((error) => {
-          return error.msg;
-        });
-        setErrors(errorArray);
-        setTimeout(() => {
-          setErrors([]);
-        }, 5000);
-      }
-    } catch (error) {
-      console.error(error);
-    }
+    createFolder.mutate(input, parentFolderId);
   };
 
   const handleInput = (e) => {
     setInput(e.target.value);
   };
 
-  const toggleCreateMode = () => {
-    setCreateMode((prevCreateMode) => !prevCreateMode);
-  };
-
   const handleId = (id) => {
     props.setActiveId(id);
     localStorage.setItem('activeId', id);
-  };
-
-  const handleDrop = async (e, folderId) => {
-    const dataTransferType = e.dataTransfer.getData('type');
-    if (dataTransferType === 'file') {
-      await props.moveFileIntoFolder(e, folderId);
-    } else if (dataTransferType === 'folder') {
-      await props.moveIntoFolder(e, folderId);
-    }
   };
 
   return (
@@ -161,7 +126,7 @@ const Sidebar = (props) => {
               className="flex flex-col gap-4 py-2"
               onSubmit={(e) => {
                 e.preventDefault();
-                createFolder();
+                handleCreateFolder();
               }}
             >
               <input
@@ -195,14 +160,16 @@ const Sidebar = (props) => {
             >
               <Icon
                 path={
-                  props.activeId === 1 ? mdiFolderOpenOutline : mdiFolderOutline
+                  props.activeId === props.allId
+                    ? mdiFolderOpenOutline
+                    : mdiFolderOutline
                 }
                 size={1.4}
               />
               <p>All Files</p>
             </button>
           </li>
-          {props.folders.map((folder) => {
+          {props.folders?.map((folder) => {
             if (
               folder.title !== 'All files' &&
               folder.title !== 'Trash' &&
@@ -212,15 +179,10 @@ const Sidebar = (props) => {
                 <Folder
                   key={folder.id}
                   folders={props.folders}
-                  setFolders={props.setFolders}
                   folder={folder}
                   activeId={props.activeId}
                   handleId={handleId}
                   trashId={props.trashId}
-                  allowDrop={props.allowDrop}
-                  onDragStart={props.onDragStart}
-                  moveIntoFolder={props.moveIntoFolder}
-                  moveFileIntoFolder={props.moveFileIntoFolder}
                 />
               );
             }
@@ -230,7 +192,7 @@ const Sidebar = (props) => {
               className="list-primary md:hover-primary flex items-center gap-4"
               onClick={() => handleId(props.trashId)}
               onDrop={(e) => handleDrop(e, props.trashId)}
-              onDragOver={props.allowDrop}
+              onDragOver={allowDrop}
             >
               <Icon path={mdiTrashCanOutline} size={1.4} />
               <p>Trash</p>
@@ -241,14 +203,12 @@ const Sidebar = (props) => {
             <List heading="Account">
               <button
                 className="list-secondary hover-primary flex items-center gap-4 p-2"
-                onClick={props.changeTheme}
+                onClick={changeTheme}
               >
                 <p>Change theme</p>
                 <Icon
                   className="-my-1"
-                  path={
-                    props.theme === 'light' ? mdiWeatherSunny : mdiWeatherNight
-                  }
+                  path={theme === 'light' ? mdiWeatherSunny : mdiWeatherNight}
                   size={1.2}
                 />
               </button>

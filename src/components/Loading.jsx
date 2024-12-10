@@ -3,11 +3,15 @@ import Icon from '@mdi/react';
 import { useContext } from 'react';
 import { ThemeContext } from './ThemeContext';
 
-const Loading = () => {
-  const { theme, setTheme } = useContext(ThemeContext);
+const Loading = (props) => {
+  const { theme } = useContext(ThemeContext);
   return (
     <div className={`${theme} grid h-full w-full place-content-center`}>
-      <Icon className="text-primary spin" path={mdiLoading} size={5} />
+      <Icon
+        className={`${props.className} text-primary spin`}
+        path={mdiLoading}
+        size={props.size || 5}
+      />
     </div>
   );
 };
