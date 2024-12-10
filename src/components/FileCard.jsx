@@ -120,14 +120,14 @@ const FileCard = (props) => {
         <summary className="list-none"></summary>
         {!imageFileTypes.includes(props.file.ext) ? (
           <iframe
-            className="mb-3 max-w-full rounded"
+            className="md:max-h-50dvh mb-3 max-w-full rounded"
             src={props.file.url}
             width="100%"
             height="500"
           />
         ) : (
           <img
-            className="mb-3 max-w-full rounded"
+            className="md:max-h-50dvh mx-auto mb-3 max-w-full rounded"
             src={props.file.url}
             alt={`${props.file.title} preview`}
           />

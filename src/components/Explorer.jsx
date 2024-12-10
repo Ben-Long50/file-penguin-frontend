@@ -5,6 +5,8 @@ import {
   mdiArrowUpLeft,
   mdiTrashCanOutline,
   mdiUpload,
+  mdiCircle,
+  mdiCircleOutline,
 } from '@mdi/js';
 import Icon from '@mdi/react';
 import Button from './Button';
@@ -68,6 +70,8 @@ const Explorer = () => {
 
   useEffect(() => {
     if (!folderContents.isLoading) {
+      console.log(folderContents.data);
+
       if (Number(activeId) === allId) {
         setFilteredSubfolders([]);
         setFilteredFiles(folderContents.data.files);
@@ -206,13 +210,16 @@ const Explorer = () => {
             <Button
               className="p-1 sm:p-2"
               onClick={() => {
-                const folder = folders.find((folder) => folder.id === activeId);
-                if (folder) {
-                  setActiveId(folder.parentFolderId);
+                if (folderContents.data.parentFolderId) {
+                  setActiveId(folderContents.data.parentFolderId);
                 }
               }}
             >
-              <Icon path={mdiArrowUpLeft} size={1.2} />
+              {folderContents.data.parentFolderId ? (
+                <Icon path={mdiArrowUpLeft} size={1.2} />
+              ) : (
+                <Icon path={mdiCircleOutline} size={1.2} />
+              )}
             </Button>
           ) : (
             <>

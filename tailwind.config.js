@@ -23,6 +23,9 @@ export default {
       transitionDuration: {
         5000: '5000ms',
       },
+      maxHeight: {
+        '50dvh': '50dvh',
+      },
     },
   },
   plugins: [],
