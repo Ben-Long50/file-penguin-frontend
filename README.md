@@ -110,23 +110,33 @@ To access the live version of this project and explore all of it's features, use
 
 ### Installation
 
-1. **Clone the Repository**  
+1. **Clone the Repository**
+
    Run the following command to clone the repository:
+
    ```sh
    git clone https://github.com/Ben-Long50/file-penguin-frontend.git
    ```
-2. **Navigate to the Project Directory and Install Dependencies**  
+
+2. **Navigate to the Project Directory and Install Dependencies**
+
    Move into the project directory and install the required npm packages:
+
    ```sh
    cd file-penguin-frontend
    npm install
    ```
-3. **Set Up Environment Variables**  
+
+3. **Set Up Environment Variables**
+
    Create a .env file in the project’s base directory and add the following environment variable:
+
    ```js
    VITE_API_URL = 'http://localhost:3000';
    ```
-4. **Avoid Accidental Pushes to the Original Repository**  
+
+4. **Avoid Accidental Pushes to the Original Repository**
+
    If you plan to make changes, update the Git remote to point to your own fork to prevent accidental pushes to the base repository:
 
    ```sh
@@ -146,8 +156,10 @@ To access the live version of this project and explore all of it's features, use
    origin  https://github.com/<your_github_username>/file-penguin-frontend.git (push)
    ```
 
-5. **Start the Development Server**  
+5. **Start the Development Server**
+
    Run the following command to start the app:
+
    ```sh
    npm run dev
    ```
