@@ -20,7 +20,11 @@ const DragDropProvider = ({ children }) => {
     const childId = dataTransferId ? Number(dataTransferId) : Number(targetId);
 
     if (childId !== folderId) {
-      moveFolder.mutate({ folderId, childId });
+      try {
+        await moveFolder.mutateAsync({ folderId, childId });
+      } catch (error) {
+        return error.message;
+      }
     }
   };
 
@@ -45,15 +49,15 @@ const DragDropProvider = ({ children }) => {
   };
 
   const handleDrop = async (e, folderId, setErrors) => {
-    let errors;
+    let result;
     const dataTransferType = e.dataTransfer.getData('type');
     if (dataTransferType === 'file') {
-      errors = await handleMoveFile(e, folderId);
+      result = await handleMoveFile(e, folderId);
     } else if (dataTransferType === 'folder') {
-      errors = await handleMoveFolder(e, folderId);
+      result = await handleMoveFolder(e, folderId);
     }
-    if (errors) {
-      setErrors(errors);
+    if (result) {
+      setErrors([result]);
       setTimeout(() => {
         setErrors([]);
       }, 5000);

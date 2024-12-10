@@ -1,5 +1,6 @@
 const handleResponse = async (response) => {
   const data = await response.json();
+
   if (data.errors) {
     const errorMessages = data.errors.map((error) => error.msg);
     const validationError = new Error(`${errorMessages}`);
@@ -10,7 +11,7 @@ const handleResponse = async (response) => {
   } else if (response.status === 401) {
     throw new Error(`${data.message}. Sign in to complete this action`);
   } else if (!response.ok) {
-    throw new Error(`An unexpected error occured: ${data.message}`);
+    throw new Error(`${data}`);
   }
   return data;
 };

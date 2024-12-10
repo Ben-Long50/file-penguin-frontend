@@ -11,9 +11,6 @@ const useMoveFolderMutation = (apiUrl) => {
       queryClient.invalidateQueries({ queryKey: ['folders'] });
       queryClient.invalidateQueries({ queryKey: ['folderContents'] });
     },
-    onError: (error) => {
-      console.log(error);
-    },
     throwOnError: false,
   });
 };
