@@ -3,7 +3,6 @@ const getServerStatus = async (apiUrl) => {
   try {
     const response = await fetch(`${apiUrl}/status`, {
       method: 'GET',
-      credentials: 'include',
     });
     const data = await response.json();
     if (!response.ok) {
